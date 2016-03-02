@@ -1,0 +1,265 @@
+<link rel="import" href="../tangere/Tangere.html">
+<link rel="import" href="../at-theme/at-theme.html">
+<link rel="import" href="../at-i18n/at-i18n-behavior.html">
+<link rel="import" href="../at-carbon-moment/momentjs-import.html">
+<link rel="import" href="../at-carbon-icon-button/at-carbon-icon-button.html">
+<link rel="import" href="styles/at-carbon-date-picker-styles.html">
+
+<dom-module id="at-carbon-date-picker">
+  <template>
+    <style include="at-form-common"></style>
+    <style include="at-carbon-date-picker-styles"></style>
+    <style></style>
+    <div class="calendar vertical layout dtTable">
+      <div class="calHead">
+        <div class="horizontal layout calRow">
+          <div class="flex-1" on-tap="_backClicked">
+            <at-carbon-icon icon="arrow-left" size="20"></at-carbon-icon>
+          </div>
+          <div class="flex-5">
+            <div class="horizontal layout center-justified">
+              <span class="bold">{{_monthName}}</span>&nbsp;<span class="bold">{{_year}}</span>
+            </div>
+          </div>
+          <div class="flex-1" on-tap="_nextClicked">
+            <at-carbon-icon icon="arrow-right" size="20"></at-carbon-icon>
+          </div>
+        </div>
+        <div class="horizontal layout calRow">
+          <template is="dom-repeat" items="{{_daysOfWeek}}">
+            <span class="flex-1 calTh">{{item}}</span>
+          </template>
+        </div>
+      </div>
+      <div class="calBody">
+        <div class="vertical layout calRow">
+          <template is="dom-repeat" items="{{calendar}}">
+            <div class="horizontal layout calRow">
+              <template is="dom-repeat" items="{{item}}">
+                <span on-tap="_dateClicked" row$="{{item.row}}" col$="{{item.col}}" class$="{{item.classList}}">{{item.day}}</span>
+              </template>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+  </template>
+  <script>
+    'use strict';
+    Polymer({
+      is: 'at-carbon-date-picker',
+      behaviors: [ Tangere.behaviors.i18n ],
+      properties: {
+        // when used in at-form-daterange start=true marks the date picker for start date
+        start: {
+          type: Boolean,
+          value: false
+        },
+        // when used in at-form-daterange end=true marks the date picker for end date
+        end: {
+          type: Boolean,
+          value: false
+        },
+        // when used in at-form-daterange startDate is the start of the date range
+        startDate: {
+          type: String,
+          value: ''
+        },
+        // when used in at-form-daterange endDate is the end of the date range
+        endDate: {
+          type: String,
+          value: ''
+        },
+        format: {
+          type: String,
+          value: '',
+          observer: 'formatChanged'
+        },
+        _year: {
+          type: Number,
+          value: 2016
+        },
+        _monthName: {
+          type: String,
+          value: ''
+        },
+        calendar: {
+          type: Array,
+          value: function () {
+            return [];
+          }
+        },
+        _daysOfWeek: {
+          type: Array,
+          value: function () {
+            return [];
+          }
+        }
+      },
+      ready: function () {
+
+        var nowMoment = moment();
+        this._year = nowMoment.year();
+        this._monthName = nowMoment.format("MMMM");
+        var monthName =
+
+        if (this.format === "") {
+          this.format = this._localizedFormat("date");
+        }
+        this._daysOfWeek = "0_1_2_3_4_5_6".split("_").map(function (n) {
+          return moment().day(n).format("dd");
+        });
+
+        var nowMoment = moment().format(this.format);
+        this.initializeDates(nowMoment, nowMoment);
+      },
+      formatChanged: function (newValue, oldValue) {
+        var format = newValue;
+        if (!format) {
+          format = this._localizedFormat("date");
+        }
+        if (!oldValue) {
+          oldValue = format;
+        }
+        var startMoment = moment(this.startDate, oldValue);
+        var endMoment = moment(this.endDate, oldValue);
+        this.startDate = startMoment.format(newValue);
+        this.endDate = endMoment.format(newValue);
+
+        this.fire('dates-updated', {
+          value: {
+            startDate: this.startDate,
+            endDate: this.endDate
+          }
+        });
+      },
+      _moveMonth: function (n) {
+        this._firstOfMonth.add(n, 'month');
+        this._initFirstOfMonth(this._firstOfMonth);
+        this.rebuildCalendar(this.startDate, this.endDate, this._getSelectedDate(), this._firstOfMonth);
+      },
+      _backClicked: function () {
+        this._moveMonth(-1);
+      },
+      _nextClicked: function () {
+        this._moveMonth(1);
+      },
+      _dateClicked: function (e) {
+        var element = e.target;
+        var row = element.getAttribute("row");
+        var col = element.getAttribute("col");
+        var selectedDate = this.calendar[row][col].identifier;
+        this._selectDate(selectedDate);
+      },
+      initializeDates: function (startDate, endDate) {
+        this.startDate = startDate;
+        this.endDate = endDate;
+
+        if (this.start) {
+          this._initFirstOfMonth(startDate);
+          this.rebuildCalendar(startDate, endDate, startDate, this._firstOfMonth);
+        } else if (this.end) {
+          this._initFirstOfMonth(endDate);
+          this.rebuildCalendar(startDate, endDate, endDate, this._firstOfMonth);
+        }
+      },
+      _initFirstOfMonth: function (forDate) {
+        var dateMoment = moment(forDate, this.format);
+        var year = dateMoment.year();
+        var month = dateMoment.month();
+        this._firstOfMonth = moment([year, month, 1]);
+        // debugger;
+      },
+      _selectDate: function (newValue) {
+        if (newValue === '') {
+          return;
+        }
+
+        if (this.start) {
+          this.startDate = newValue;
+        } else if (this.end) {
+          this.endDate = newValue;
+        }
+        this._initFirstOfMonth(newValue);
+        this.rebuildCalendar(this.startDate, this.endDate, newValue, this._firstOfMonth);
+
+        this.fire('dates-updated', {
+          value: {
+            startDate: this.startDate,
+            endDate: this.endDate
+          }
+        });
+      },
+      _getSelectedDate: function () {
+        if (this.start) {
+          return this.startDate;
+        } else if (this.end) {
+          return this.endDate;
+        }
+        return '';
+      },
+      rebuildCalendar: function (startDate, endDate, selectedDate, firstOfMonth) {
+        // these two lines update the UI
+        this._year = firstOfMonth.year();
+        this._monthName = firstOfMonth.format("MMMM");
+
+        var rowIndex,
+          columnIndex,
+          date,
+          index = 0;
+        var newCalendar = [];
+        var firstDayOfMonthOffset = firstOfMonth.day();
+        var column = [];
+
+        for (rowIndex = 0; rowIndex < 6; rowIndex += 1) {
+          column = [];
+          for (columnIndex = 0; columnIndex < 7; columnIndex += 1) {
+            date = firstOfMonth.clone().add(index - firstDayOfMonthOffset, 'days');
+
+            var cell = {
+              date: date,
+              year: date.year(),
+              month: date.month(),
+              day: date.date(),
+              identifier: date.format(this.format),
+              row: rowIndex,
+              col: columnIndex
+            };
+
+            // tokenList filter is not present in polymer 0.8 so we build the class list for each cell programmatically
+            var classList = ['flex-1', 'calTd'];
+            if (cell.identifier === selectedDate) {
+              classList.push('active');
+            }
+            if (cell.month !== firstOfMonth.month()) {
+              classList.push('disabled');
+            }
+            if (cell.month === firstOfMonth.month()) {
+              classList.push('available');
+            }
+            if (cell.identifier === startDate) {
+              classList.push('start-date');
+            }
+            if (cell.identifier === endDate) {
+              classList.push('end-date');
+            }
+            var identMoment = moment(cell.identifier, this.format);
+            var startMoment = moment(startDate, this.format);
+            var endMoment = moment(endDate, this.format);
+            if ((identMoment.isSame(startMoment) || identMoment.isAfter(startMoment)) && (identMoment.isSame(endMoment) || identMoment.isBefore(endMoment))) {
+              classList.push('in-range');
+            }
+
+            cell.classList = classList.join(" ");
+
+            column.push(cell);
+
+            index += 1;
+          }
+          newCalendar.push(column);
+        }
+        this.calendar = newCalendar;
+      }
+    });
+  </script>
+</dom-module>

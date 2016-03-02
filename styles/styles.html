@@ -1,0 +1,67 @@
+<dom-module id="at-carbon-date-picker-styles">
+  <template>
+    <style>
+      .calendar {
+        padding: 4px;
+        margin: 4px;
+        @apply(--at-form-daterange-calendar-border);
+        background: var(--at-form-daterange-calendar-background-color);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.176);
+      }
+
+      .calendar .dtTable {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .bold {
+        font-weight: bold;
+      }
+      .calendar .calHead > .calRow > .calTh,
+      .calendar .calBody > .calRow > .calRow > .calTd {
+        text-align: center;
+        border-radius: 4px;
+        cursor: pointer;
+        white-space: nowrap;
+        padding: 5px;
+      }
+
+      .calendar > .calHead > .calRow > .calTh {
+        /* *ij* this css property is not recognized in Chrome 43 */
+        font-size-adjust: 0.488;
+        font-weight: bold;
+      }
+
+      .calendar .calBody > .calRow > .calRow > .calTd.disabled,
+      .calendar .calBody > .calRow > .calRow > .calTd.off {
+        color: var(--at-form-daterange-calendar-disabled-item-color);
+      }
+      .calendar .calBody > .calRow > .calRow > .calTd.available:hover {
+        background: var(--at-form-daterange-calendar-item-hover-background-color);
+      }
+
+      .calendar .calBody > .calRow > .calRow > .calTd.available + .calendar .calBody > .calRow > .calRow > .calTd.available.start-date {
+        border-radius: 4px 0 0 4px;
+      }
+
+      .calendar .calBody > .calRow > .calRow > .calTd.start-date.end-date {
+        border-radius: 4px;
+      }
+
+      .calendar .calBody > .calRow > .calRow > .calTd.in-range {
+        background: var(--at-form-daterange-calendar-item-in-range-background-color);
+        border-radius: 0;
+      }
+
+      .calendar .calBody > .calRow > .calRow > .calTd.in-range + .calendar .calBody > .calRow > .calRow > .calTd.available.in-range.end-date {
+        border-radius: 0 4px 4px 0;
+      }
+      .calendar .calBody > .calRow > .calRow > .calTd.active,
+      .calendar .calBody > .calRow > .calRow > .calTd.active:hover {
+        background-color: var(--at-form-daterange-calendar-active-item-background-color);
+        border-color: var(--at-form-daterange-calendar-active-item-border-color);
+        color: var(--at-form-daterange-calendar-active-item-text-color);
+      }
+    </style>
+  </template>
+</dom-module>
