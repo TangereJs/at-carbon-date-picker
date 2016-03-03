@@ -1,3 +1,4 @@
+<!-- at-theme is imported by at-carbon-date-picker so there is no need to import at-theme here -->
 <dom-module id="at-carbon-date-picker-styles">
   <template>
     <style>
@@ -7,6 +8,56 @@
         @apply(--at-form-daterange-calendar-border);
         background: var(--at-form-daterange-calendar-background-color);
         box-shadow: 0 6px 12px rgba(0, 0, 0, 0.176);
+        @apply(--layout-vertical);
+        min-width: 250px;
+      }
+
+      .calendar-header {
+        @apply(--layout-vertical);
+      }
+
+      .calendar-row {
+        @apply(--layout-horizontal);
+      }
+
+      .calendar-button {
+        margin: 2px;
+        padding: 2px;
+      }
+
+       .calendar-icon {
+         width: 24px;
+         height: 24px;
+       }
+
+      .calendar-button:hover {
+        @apply(--shadow-elevation-2dp);
+      }
+
+      .month-year-view {
+        @apply(--layout-horizontal);
+        @apply(--layout-flex);
+        @apply(--layout-center-center)
+      }
+
+      .month-name {
+        @apply(--at-form-label-font);
+        font-weight: bold;
+        padding: 0 4px;
+      }
+
+      .year {
+        @apply(--at-form-label-font);
+        font-weight: bold;
+        padding: 0 4px;
+      }
+
+      .weekday-name {
+        @apply(--layout-flex);
+        @apply(--at-form-label-font);
+        font-weight: bold;
+        text-align: center;
+        cursor: pointer;
       }
 
       .calendar .dtTable {
@@ -14,53 +65,59 @@
         border-collapse: collapse;
       }
 
-      .bold {
-        font-weight: bold;
+      .calendar-body {
+        @apply(--layout-vertical);
       }
-      .calendar .calHead > .calRow > .calTh,
-      .calendar .calBody > .calRow > .calRow > .calTd {
-        text-align: center;
-        border-radius: 4px;
+
+      /*
+        .day is for days in current month that are available for selection
+      */
+      .day {
+        @apply(--layout-flex);
+        @apply(--at-form-label-font);
         cursor: pointer;
-        white-space: nowrap;
-        padding: 5px;
+        text-align: center;
+        vertical-align: middle;
+        line-height: 32px;
+        height: 32px;
       }
 
-      .calendar > .calHead > .calRow > .calTh {
-        /* *ij* this css property is not recognized in Chrome 43 */
-        font-size-adjust: 0.488;
-        font-weight: bold;
-      }
-
-      .calendar .calBody > .calRow > .calRow > .calTd.disabled,
-      .calendar .calBody > .calRow > .calRow > .calTd.off {
-        color: var(--at-form-daterange-calendar-disabled-item-color);
-      }
-      .calendar .calBody > .calRow > .calRow > .calTd.available:hover {
+      .day:hover {
         background: var(--at-form-daterange-calendar-item-hover-background-color);
       }
 
-      .calendar .calBody > .calRow > .calRow > .calTd.available + .calendar .calBody > .calRow > .calRow > .calTd.available.start-date {
-        border-radius: 4px 0 0 4px;
+      /*
+      .day.disabled is for days in that are form previous and next month
+      */
+      .day.disabled {
+        color: var(--at-form-daterange-calendar-disabled-item-color);
       }
 
-      .calendar .calBody > .calRow > .calRow > .calTd.start-date.end-date {
-        border-radius: 4px;
+      .day.disabled:hover {
+        background: var(--at-form-daterange-calendar-background-color);
       }
-
-      .calendar .calBody > .calRow > .calRow > .calTd.in-range {
+      /* .day.in-range is for days that are between start date and end date */
+      .day.in-range {
         background: var(--at-form-daterange-calendar-item-in-range-background-color);
-        border-radius: 0;
       }
 
-      .calendar .calBody > .calRow > .calRow > .calTd.in-range + .calendar .calBody > .calRow > .calRow > .calTd.available.in-range.end-date {
-        border-radius: 0 4px 4px 0;
-      }
-      .calendar .calBody > .calRow > .calRow > .calTd.active,
-      .calendar .calBody > .calRow > .calRow > .calTd.active:hover {
+      .day.selected,
+      .day.selected:hover {
         background-color: var(--at-form-daterange-calendar-active-item-background-color);
         border-color: var(--at-form-daterange-calendar-active-item-border-color);
         color: var(--at-form-daterange-calendar-active-item-text-color);
+      }
+
+      .day.selected.start-date {
+        border-radius: 4px 0 0 4px;
+      }
+
+      .day.selected.end-date {
+        border-radius: 0 4px 4px 0;
+      }
+
+      .day.selected.start-date.end-date {
+        border-radius: 4px;
       }
     </style>
   </template>

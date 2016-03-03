@@ -1,45 +1,95 @@
+<!--
+Missing features needed for at-form-date
+-- time picker
+-- year/month fast switcher
+-- single date mode
+-->
+
 <link rel="import" href="../tangere/Tangere.html">
 <link rel="import" href="../at-theme/at-theme.html">
 <link rel="import" href="../at-i18n/at-i18n-behavior.html">
 <link rel="import" href="../at-carbon-moment/momentjs-import.html">
 <link rel="import" href="../at-carbon-icon-button/at-carbon-icon-button.html">
-<link rel="import" href="styles/at-carbon-date-picker-styles.html">
+<link rel="import" href="styles/styles.html">
 
 <dom-module id="at-carbon-date-picker">
   <template>
     <style include="at-form-common"></style>
     <style include="at-carbon-date-picker-styles"></style>
     <style></style>
-    <div class="calendar vertical layout dtTable">
-      <div class="calHead">
-        <div class="horizontal layout calRow">
-          <div class="flex-1" on-tap="_backClicked">
-            <at-carbon-icon icon="arrow-left" size="20"></at-carbon-icon>
+    <div class="calendar">
+      <div class="calendar-header">
+        <div class="calendar-row">
+          <div class="calendar-button" on-tap="_backClicked">
+            <at-carbon-icon class="calendar-icon" icon="arrow-left"></at-carbon-icon>
           </div>
-          <div class="flex-5">
-            <div class="horizontal layout center-justified">
-              <span class="bold">{{_monthName}}</span>&nbsp;<span class="bold">{{_year}}</span>
-            </div>
+          <div class="month-year-view">
+            <div class="month-name">{{_monthName}}</div><div class="year">{{_year}}</div>
           </div>
-          <div class="flex-1" on-tap="_nextClicked">
-            <at-carbon-icon icon="arrow-right" size="20"></at-carbon-icon>
+          <div class="calendar-button" on-tap="_nextClicked">
+            <at-carbon-icon class="calendar-icon" icon="arrow-right"></at-carbon-icon>
           </div>
         </div>
-        <div class="horizontal layout calRow">
+        <div class="calendar-row">
           <template is="dom-repeat" items="{{_daysOfWeek}}">
-            <span class="flex-1 calTh">{{item}}</span>
+            <div class="weekday-name">{{item}}</div>
           </template>
         </div>
       </div>
-      <div class="calBody">
-        <div class="vertical layout calRow">
-          <template is="dom-repeat" items="{{calendar}}">
-            <div class="horizontal layout calRow">
-              <template is="dom-repeat" items="{{item}}">
-                <span on-tap="_dateClicked" row$="{{item.row}}" col$="{{item.col}}" class$="{{item.classList}}">{{item.day}}</span>
-              </template>
-            </div>
-          </template>
+      <div id="calendarBody" class="calendar-body">
+        <div class="calendar-row">
+          <div class="day">day</div>
+          <div class="day">day</div>
+          <div class="day">day</div>
+          <div class="day">day</div>
+          <div class="day">day</div>
+          <div class="day">day</div>
+          <div class="day">day</div>
+        </div>
+        <div class="calendar-row">
+          <div class="day">day</div>
+          <div class="day">day</div>
+          <div class="day">day</div>
+          <div class="day">day</div>
+          <div class="day">day</div>
+          <div class="day">day</div>
+          <div class="day">day</div>
+        </div>
+        <div class="calendar-row">
+          <div class="day">day</div>
+          <div class="day">day</div>
+          <div class="day">day</div>
+          <div class="day">day</div>
+          <div class="day">day</div>
+          <div class="day">day</div>
+          <div class="day">day</div>
+        </div>
+        <div class="calendar-row">
+          <div class="day">day</div>
+          <div class="day">day</div>
+          <div class="day">day</div>
+          <div class="day">day</div>
+          <div class="day">day</div>
+          <div class="day">day</div>
+          <div class="day">day</div>
+        </div>
+        <div class="calendar-row">
+          <div class="day">day</div>
+          <div class="day">day</div>
+          <div class="day">day</div>
+          <div class="day">day</div>
+          <div class="day">day</div>
+          <div class="day">day</div>
+          <div class="day">day</div>
+        </div>
+        <div class="calendar-row">
+          <div class="day">day</div>
+          <div class="day">day</div>
+          <div class="day">day</div>
+          <div class="day">day</div>
+          <div class="day">day</div>
+          <div class="day">day</div>
+          <div class="day">day</div>
         </div>
       </div>
     </div>
@@ -50,11 +100,24 @@
       is: 'at-carbon-date-picker',
       behaviors: [ Tangere.behaviors.i18n ],
       properties: {
+        /**
+         * Holds the mode of operation for date-picker.
+         * Two possible values "single" and "range"
+         * single is used for at-form-date which operates on only one value
+         * range is used for at-form-daterange which operates on start/end values
+         */
+        // mode: {
+        //   type: String,
+        //   value: 'single',
+        //   observer: 'modeChanged'
+        //   xtype: 'enum',
+        //   xvaluelist: [{ title: "Single", value: "single"}, { title: "Range", value: "range"}]
+        // }
         // when used in at-form-daterange start=true marks the date picker for start date
-        start: {
-          type: Boolean,
-          value: false
-        },
+        // start: {
+        //   type: Boolean,
+        //   value: false
+        // },
         // when used in at-form-daterange end=true marks the date picker for end date
         end: {
           type: Boolean,
@@ -74,46 +137,67 @@
           type: String,
           value: '',
           observer: 'formatChanged'
-        },
-        _year: {
-          type: Number,
-          value: 2016
-        },
-        _monthName: {
-          type: String,
-          value: ''
-        },
-        calendar: {
-          type: Array,
-          value: function () {
-            return [];
-          }
-        },
-        _daysOfWeek: {
-          type: Array,
-          value: function () {
-            return [];
-          }
         }
       },
       ready: function () {
+        this._initializeAtCarbonDatePicker();
+      },
+      _createLocaleMoment: function () {
+        // getLocale function is from at-i18n; it gets the local from the browser settings
+        var locale = this.getLocale();
+        // we create localized moment instance
+        var localeMoment = moment().locale(locale);
 
-        var nowMoment = moment();
-        this._year = nowMoment.year();
-        this._monthName = nowMoment.format("MMMM");
-        var monthName =
-
-        if (this.format === "") {
-          this.format = this._localizedFormat("date");
+        return localeMoment;
+      },
+      _initializeAtCarbonDatePicker: function () {
+        if (this._isInitialized) {
+          return;
         }
-        this._daysOfWeek = "0_1_2_3_4_5_6".split("_").map(function (n) {
-          return moment().day(n).format("dd");
+        this._isInitialized = true;
+
+        // we create the new locale moment
+        var localeMoment = this._createLocaleMoment();
+
+        // we need year to be displayed in the date-picker
+        // we get this from localized moment instance
+        this._year = localeMoment.year();
+        // we get month name from localized moment instance
+        this._monthName = localeMoment.format("MMMM");
+
+        // we figure out starting day of week for current locale
+        var startOfWeekNum = localeMoment.startOf('week').day();
+        // by default we assume that sunday is the first day of week. hence 0_1_2_3_4_5_6
+        var _daysOfWeekStr = "0_1_2_3_4_5_6";
+        if (startOfWeekNum === 1) {
+          // if startOfWeekNum is 1 that means that monday is first day of week hence 1_2_3_4_5_6_7
+          _daysOfWeekStr = "1_2_3_4_5_6_7";
+        }
+
+        this._daysOfWeek = _daysOfWeekStr.split("_").map(function (n) {
+          return localeMoment.day(n).format("dd");
         });
 
-        var nowMoment = moment().format(this.format);
-        this.initializeDates(nowMoment, nowMoment);
+        if (!this.format) {
+          // if format is not specified use localized format from at-i18n
+          this._internalFormatUpdate = true;
+          this.format = this._localizedFormat("date");
+          this._internalFormatUpdate = false;
+        }
+
+        var localeMomentStr = localeMoment.format(this.format);
+        this.startDate = localeMomentStr;
+        this.endDate = localeMomentStr;
+
+        this._refreshCalendar(localeMomentStr, localeMomentStr);
+
       },
       formatChanged: function (newValue, oldValue) {
+        if (this._internalFormatUpdate) { return; }
+        // this is the only changed callback called before ready function
+        // so call _initializeAtCarbonDatePicker here
+        this._initializeAtCarbonDatePicker();
+
         var format = newValue;
         if (!format) {
           format = this._localizedFormat("date");
@@ -121,10 +205,11 @@
         if (!oldValue) {
           oldValue = format;
         }
+
         var startMoment = moment(this.startDate, oldValue);
         var endMoment = moment(this.endDate, oldValue);
-        this.startDate = startMoment.format(newValue);
-        this.endDate = endMoment.format(newValue);
+        this.startDate = startMoment.format(format);
+        this.endDate = endMoment.format(format);
 
         this.fire('dates-updated', {
           value: {
@@ -132,6 +217,34 @@
             endDate: this.endDate
           }
         });
+      },
+      // public API function
+      setDates: function (startDate, endDate) {
+        // parameters can be null, undefined, numbers and in incorrect format
+        // we need to validate them and log errors if any is invalid
+        var localeMoment = this._createLocaleMoment();
+        var startValid = moment(startDate, this.format, true).isValid();
+        if (!startValid) {
+          console.log("Start date is invalid. Using now as start date.");
+          startDate = localeMoment.format(this.format);
+        }
+        var endValid = moment(endDate, this.format, true).isValid();
+        if (!endValid) {
+          console.log("End date is invalid. Using now as end date.");
+          endDate = localeMoment.format(this.format);
+        }
+
+        this._refreshCalendar(startDate, endDate);
+        // this.startDate = startDate;
+        // this.endDate = endDate;
+        //
+        // if (this.start) {
+        //   this._initFirstOfMonth(startDate);
+        //   this.rebuildCalendar(startDate, endDate, startDate, this._firstOfMonth);
+        // } else if (this.end) {
+        //   this._initFirstOfMonth(endDate);
+        //   this.rebuildCalendar(startDate, endDate, endDate, this._firstOfMonth);
+        // }
       },
       _moveMonth: function (n) {
         this._firstOfMonth.add(n, 'month');
@@ -144,24 +257,12 @@
       _nextClicked: function () {
         this._moveMonth(1);
       },
-      _dateClicked: function (e) {
-        var element = e.target;
+      _dateClicked: function (event) {
+        var element = event.target;
         var row = element.getAttribute("row");
         var col = element.getAttribute("col");
         var selectedDate = this.calendar[row][col].identifier;
         this._selectDate(selectedDate);
-      },
-      initializeDates: function (startDate, endDate) {
-        this.startDate = startDate;
-        this.endDate = endDate;
-
-        if (this.start) {
-          this._initFirstOfMonth(startDate);
-          this.rebuildCalendar(startDate, endDate, startDate, this._firstOfMonth);
-        } else if (this.end) {
-          this._initFirstOfMonth(endDate);
-          this.rebuildCalendar(startDate, endDate, endDate, this._firstOfMonth);
-        }
       },
       _initFirstOfMonth: function (forDate) {
         var dateMoment = moment(forDate, this.format);
@@ -190,75 +291,60 @@
           }
         });
       },
-      _getSelectedDate: function () {
-        if (this.start) {
-          return this.startDate;
-        } else if (this.end) {
-          return this.endDate;
+      _getSelectedDate: function (isEnd, startDate, endDate) {
+        if (isEnd) {
+          return endDate;
+        } else {
+          return startDate;
         }
-        return '';
       },
-      rebuildCalendar: function (startDate, endDate, selectedDate, firstOfMonth) {
+      _refreshCalendar: function (startDate, endDate) {
+        var locale = this.getLocale();
+        var selectedDate = this._getSelectedDate(this.end, startDate, endDate);
+        var selectedMoment = moment(selectedDate, this.format).locale(locale);
+
+        var startDateMoment = moment(startDate, this.format).locale(locale);
+        var endDateMoment = moment(endDate, this.format).locale(locale);
+
+        var firstOfMonthMoment = selectedMoment.clone().date(1);
+        var firstDayOfMonthOffset = firstOfMonthMoment.day();
+        var startIndex = 0 - firstDayOfMonthOffset;
+
         // these two lines update the UI
-        this._year = firstOfMonth.year();
-        this._monthName = firstOfMonth.format("MMMM");
+        this._year = selectedMoment.year();
+        this._monthName = selectedMoment.format("MMMM");
+        var self = this;
+        var calendarBody = Polymer.dom(this.$.calendarBody);
+        var calendarRows = calendarBody.querySelectorAll('.calendar-row');
+        calendarRows.forEach(function (calendarRow, rowIndex) {
+          var days = Polymer.dom(calendarRow).querySelectorAll('.day');
+          days.forEach(function (day, dayIndex) {
+            var offset = startIndex + rowIndex*7 + dayIndex;
+            var clone = firstOfMonthMoment.clone();
+            clone.add(offset, 'days');
+            var dayIdentifier = clone.format(self.format);
+            day.setAttribute('day-identifier', dayIdentifier);
+            day.innerHTML = clone.date();
 
-        var rowIndex,
-          columnIndex,
-          date,
-          index = 0;
-        var newCalendar = [];
-        var firstDayOfMonthOffset = firstOfMonth.day();
-        var column = [];
-
-        for (rowIndex = 0; rowIndex < 6; rowIndex += 1) {
-          column = [];
-          for (columnIndex = 0; columnIndex < 7; columnIndex += 1) {
-            date = firstOfMonth.clone().add(index - firstDayOfMonthOffset, 'days');
-
-            var cell = {
-              date: date,
-              year: date.year(),
-              month: date.month(),
-              day: date.date(),
-              identifier: date.format(this.format),
-              row: rowIndex,
-              col: columnIndex
-            };
-
-            // tokenList filter is not present in polymer 0.8 so we build the class list for each cell programmatically
-            var classList = ['flex-1', 'calTd'];
-            if (cell.identifier === selectedDate) {
-              classList.push('active');
+            if (clone.isSame(selectedMoment)) {
+              Polymer.dom(day).classList.add('selected');
             }
-            if (cell.month !== firstOfMonth.month()) {
-              classList.push('disabled');
+            if (clone.month() !== firstOfMonthMoment.month()) {
+              Polymer.dom(day).classList.add('disabled');
             }
-            if (cell.month === firstOfMonth.month()) {
-              classList.push('available');
+            if (clone.isSame(startDateMoment)) {
+              Polymer.dom(day).classList.add('start-date');
             }
-            if (cell.identifier === startDate) {
-              classList.push('start-date');
+            if (clone.isSame(endDateMoment)) {
+              Polymer.dom(day).classList.add('end-date');
             }
-            if (cell.identifier === endDate) {
-              classList.push('end-date');
-            }
-            var identMoment = moment(cell.identifier, this.format);
-            var startMoment = moment(startDate, this.format);
-            var endMoment = moment(endDate, this.format);
-            if ((identMoment.isSame(startMoment) || identMoment.isAfter(startMoment)) && (identMoment.isSame(endMoment) || identMoment.isBefore(endMoment))) {
-              classList.push('in-range');
+            if ((clone.isSame(startDateMoment) || clone.isAfter(startDateMoment)) && (clone.isSame(endDateMoment) || clone.isBefore(endDateMoment))) {
+              Polymer.dom(day).classList.add('in-range');
             }
 
-            cell.classList = classList.join(" ");
+          });
+        });
 
-            column.push(cell);
-
-            index += 1;
-          }
-          newCalendar.push(column);
-        }
-        this.calendar = newCalendar;
       }
     });
   </script>
