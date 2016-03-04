@@ -202,17 +202,6 @@ Missing features needed for at-form-date
           this.format = this._localizedFormat("date");
           this._internalFormatUpdate = false;
         }
-
-        var localeMomentStr = localeMoment.format(this.format);
-        this._isInternalStartDateUpdate = true;
-        this.startDate = localeMomentStr;
-        this._isInternalStartDateUpdate = false;
-        this._isInternalEndDateUpdate = true;
-        this.endDate = localeMomentStr;
-        this._isInternalEndDateUpdate = false;
-
-        this._refreshCalendar(localeMomentStr, localeMomentStr);
-
       },
       formatChanged: function (newValue, oldValue) {
         // we need to defend against invalid formats because invalid format will poison the values
@@ -231,6 +220,8 @@ Missing features needed for at-form-date
         if (!oldValue) {
           oldValue = format;
         }
+
+        if (this.startDate === "" || this.endDate === "") { return; }
 
         var startMoment = moment(this.startDate, oldValue);
         var endMoment = moment(this.endDate, oldValue);
@@ -252,11 +243,9 @@ Missing features needed for at-form-date
 
         // parameter can be null, undefined, numbers and in incorrect format
         // we need to validate it and log errors if invalid
-        var localeMoment = this._createLocaleMoment();
         var startValid = moment(newValue, this.format, true).isValid();
         if (!startValid) {
-          console.log("Start date is invalid. Using now as start date.");
-          startDate = localeMoment.format(this.format);
+          return;
         }
 
         this._updateCurrentMoment();
@@ -269,11 +258,9 @@ Missing features needed for at-form-date
 
         // parameter can be null, undefined, numbers and in incorrect format
         // we need to validate it and log errors if invalid
-        var localeMoment = this._createLocaleMoment();
         var endValid = moment(newValue, this.format, true).isValid();
         if (!endValid) {
-          console.log("End date is invalid. Using now as end date.");
-          endDate = localeMoment.format(this.format);
+          return;
         }
 
         this._updateCurrentMoment();
@@ -282,6 +269,9 @@ Missing features needed for at-form-date
       },
       endChanged: function (newValue, oldValue) {
         this._initializeAtCarbonDatePicker();
+        if (this.startDate && this.endDate){
+          this._updateCurrentMoment();
+        }
 
         this._refreshCalendar(this.startDate, this.endDate);
       },
