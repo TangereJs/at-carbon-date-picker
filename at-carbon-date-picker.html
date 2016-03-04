@@ -1,8 +1,10 @@
 <!--
 Missing features needed for at-form-date
 -- time picker
+-- date / time switch
 -- year/month fast switcher
 -- single date mode
+-- we need to defend against invalid formats because invalid format will poison the values. We should have a list of valid formats and allow use only those formats. Everything else should be rejected
 -->
 
 <link rel="import" href="../tangere/Tangere.html">
@@ -36,7 +38,7 @@ Missing features needed for at-form-date
           </template>
         </div>
       </div>
-      <div id="calendarBody" class="calendar-body">
+      <div id="calendarBody" class="calendar-body" on-tap="_dateClicked">
         <div class="calendar-row">
           <div class="day">day</div>
           <div class="day">day</div>
@@ -121,17 +123,20 @@ Missing features needed for at-form-date
         // when used in at-form-daterange end=true marks the date picker for end date
         end: {
           type: Boolean,
-          value: false
+          value: false,
+          observer: 'endChanged'
         },
         // when used in at-form-daterange startDate is the start of the date range
         startDate: {
           type: String,
-          value: ''
+          value: '',
+          observer: 'startDateChanged'
         },
         // when used in at-form-daterange endDate is the end of the date range
         endDate: {
           type: String,
-          value: ''
+          value: '',
+          observer: 'endDateChanged'
         },
         format: {
           type: String,
@@ -150,6 +155,14 @@ Missing features needed for at-form-date
 
         return localeMoment;
       },
+      _createCurrentMomentFor: function (dateMoment) {
+        var locale = this.getLocale();
+        var year = dateMoment.year();
+        var month = dateMoment.month();
+        var result = moment([year, month, 1]).locale(locale);
+        return result;
+      },
+      // this function is called _initializeAtCarbonDatePicker because at-i18n already has a function called _initialize
       _initializeAtCarbonDatePicker: function () {
         if (this._isInitialized) {
           return;
@@ -158,6 +171,10 @@ Missing features needed for at-form-date
 
         // we create the new locale moment
         var localeMoment = this._createLocaleMoment();
+        // _currentMoment is the month displayed in the calendar
+        // we need this for next previous month navigation
+        // and later, year, month jumping and setting time in at-form-date
+        this._currentMoment = this._createCurrentMomentFor(localeMoment);
 
         // we need year to be displayed in the date-picker
         // we get this from localized moment instance
@@ -165,8 +182,9 @@ Missing features needed for at-form-date
         // we get month name from localized moment instance
         this._monthName = localeMoment.format("MMMM");
 
+        var localeClone = localeMoment.clone();
         // we figure out starting day of week for current locale
-        var startOfWeekNum = localeMoment.startOf('week').day();
+        var startOfWeekNum = localeClone.startOf('week').day();
         // by default we assume that sunday is the first day of week. hence 0_1_2_3_4_5_6
         var _daysOfWeekStr = "0_1_2_3_4_5_6";
         if (startOfWeekNum === 1) {
@@ -175,7 +193,7 @@ Missing features needed for at-form-date
         }
 
         this._daysOfWeek = _daysOfWeekStr.split("_").map(function (n) {
-          return localeMoment.day(n).format("dd");
+          return localeClone.day(n).format("dd");
         });
 
         if (!this.format) {
@@ -186,13 +204,21 @@ Missing features needed for at-form-date
         }
 
         var localeMomentStr = localeMoment.format(this.format);
+        this._isInternalStartDateUpdate = true;
         this.startDate = localeMomentStr;
+        this._isInternalStartDateUpdate = false;
+        this._isInternalEndDateUpdate = true;
         this.endDate = localeMomentStr;
+        this._isInternalEndDateUpdate = false;
 
         this._refreshCalendar(localeMomentStr, localeMomentStr);
 
       },
       formatChanged: function (newValue, oldValue) {
+        // we need to defend against invalid formats because invalid format will poison the values
+        // we should have a list of valid formats and allow use only those formats
+        // everything else should be rejected
+
         if (this._internalFormatUpdate) { return; }
         // this is the only changed callback called before ready function
         // so call _initializeAtCarbonDatePicker here
@@ -208,48 +234,56 @@ Missing features needed for at-form-date
 
         var startMoment = moment(this.startDate, oldValue);
         var endMoment = moment(this.endDate, oldValue);
+        this._isInternalStartDateUpdate = true;
         this.startDate = startMoment.format(format);
+        this._isInternalStartDateUpdate = false;
+        this._isInternalEndDateUpdate = true;
         this.endDate = endMoment.format(format);
+        this._isInternalEndDateUpdate = false;
 
-        this.fire('dates-updated', {
-          value: {
-            startDate: this.startDate,
-            endDate: this.endDate
-          }
-        });
+        this._updateDayIdentifiers(format, oldValue);
+
+        this._fireStartDateChanged(this.startDate);
+        this._fireEndDateChanged(this.endDate);
       },
-      // public API function
-      setDates: function (startDate, endDate) {
-        // parameters can be null, undefined, numbers and in incorrect format
-        // we need to validate them and log errors if any is invalid
+      startDateChanged: function (newValue, oldValue) {
+        if (this._isInternalStartDateUpdate) { return; }
+        this._initializeAtCarbonDatePicker();
+
+        // parameter can be null, undefined, numbers and in incorrect format
+        // we need to validate it and log errors if invalid
         var localeMoment = this._createLocaleMoment();
-        var startValid = moment(startDate, this.format, true).isValid();
+        var startValid = moment(newValue, this.format, true).isValid();
         if (!startValid) {
           console.log("Start date is invalid. Using now as start date.");
           startDate = localeMoment.format(this.format);
         }
-        var endValid = moment(endDate, this.format, true).isValid();
+
+        this._updateCurrentMoment();
+
+        this._refreshCalendar(this.startDate, this.endDate);
+      },
+      endDateChanged: function (newValue, oldValue) {
+        if (this._isInternalEndDateUpdate) { return; }
+        this._initializeAtCarbonDatePicker();
+
+        // parameter can be null, undefined, numbers and in incorrect format
+        // we need to validate it and log errors if invalid
+        var localeMoment = this._createLocaleMoment();
+        var endValid = moment(newValue, this.format, true).isValid();
         if (!endValid) {
           console.log("End date is invalid. Using now as end date.");
           endDate = localeMoment.format(this.format);
         }
 
-        this._refreshCalendar(startDate, endDate);
-        // this.startDate = startDate;
-        // this.endDate = endDate;
-        //
-        // if (this.start) {
-        //   this._initFirstOfMonth(startDate);
-        //   this.rebuildCalendar(startDate, endDate, startDate, this._firstOfMonth);
-        // } else if (this.end) {
-        //   this._initFirstOfMonth(endDate);
-        //   this.rebuildCalendar(startDate, endDate, endDate, this._firstOfMonth);
-        // }
+        this._updateCurrentMoment();
+
+        this._refreshCalendar(this.startDate, this.endDate);
       },
-      _moveMonth: function (n) {
-        this._firstOfMonth.add(n, 'month');
-        this._initFirstOfMonth(this._firstOfMonth);
-        this.rebuildCalendar(this.startDate, this.endDate, this._getSelectedDate(), this._firstOfMonth);
+      endChanged: function (newValue, oldValue) {
+        this._initializeAtCarbonDatePicker();
+
+        this._refreshCalendar(this.startDate, this.endDate);
       },
       _backClicked: function () {
         this._moveMonth(-1);
@@ -257,39 +291,36 @@ Missing features needed for at-form-date
       _nextClicked: function () {
         this._moveMonth(1);
       },
+      _moveMonth: function (n) {
+        this._currentMoment.add(n, 'month');
+        this._refreshCalendar(this.startDate, this.endDate);
+      },
+      _updateCurrentMoment: function () {
+        var selectedDate = this._getSelectedDate(this.end, this.startDate, this.endDate);
+        var selectedMoment = moment(selectedDate, this.format, true);
+        var currentMoment = this._createCurrentMomentFor(selectedMoment);
+        this._currentMoment = currentMoment;
+      },
       _dateClicked: function (event) {
         var element = event.target;
-        var row = element.getAttribute("row");
-        var col = element.getAttribute("col");
-        var selectedDate = this.calendar[row][col].identifier;
-        this._selectDate(selectedDate);
-      },
-      _initFirstOfMonth: function (forDate) {
-        var dateMoment = moment(forDate, this.format);
-        var year = dateMoment.year();
-        var month = dateMoment.month();
-        this._firstOfMonth = moment([year, month, 1]);
-        // debugger;
-      },
-      _selectDate: function (newValue) {
-        if (newValue === '') {
-          return;
-        }
+        var dayIdentifier = element.getAttribute('day-identifier');
+        if (dayIdentifier) {
 
-        if (this.start) {
-          this.startDate = newValue;
-        } else if (this.end) {
-          this.endDate = newValue;
-        }
-        this._initFirstOfMonth(newValue);
-        this.rebuildCalendar(this.startDate, this.endDate, newValue, this._firstOfMonth);
-
-        this.fire('dates-updated', {
-          value: {
-            startDate: this.startDate,
-            endDate: this.endDate
+          if (this.end) {
+            this._isInternalEndDateUpdate = true;
+            this.endDate = dayIdentifier;
+            this._isInternalEndDateUpdate = false;
+          } else {
+            this._isInternalStartDateUpdate = true;
+            this.startDate = dayIdentifier;
+            this._isInternalStartDateUpdate = false;
           }
-        });
+
+          this._refreshCalendar(this.startDate, this.endDate);
+
+          this._fireStartDateChanged(this.startDate);
+          this._fireEndDateChanged(this.endDate);
+        }
       },
       _getSelectedDate: function (isEnd, startDate, endDate) {
         if (isEnd) {
@@ -306,13 +337,13 @@ Missing features needed for at-form-date
         var startDateMoment = moment(startDate, this.format).locale(locale);
         var endDateMoment = moment(endDate, this.format).locale(locale);
 
-        var firstOfMonthMoment = selectedMoment.clone().date(1);
+        var firstOfMonthMoment = this._currentMoment;
         var firstDayOfMonthOffset = firstOfMonthMoment.day();
         var startIndex = 0 - firstDayOfMonthOffset;
 
         // these two lines update the UI
-        this._year = selectedMoment.year();
-        this._monthName = selectedMoment.format("MMMM");
+        this._year = firstOfMonthMoment.year();
+        this._monthName = firstOfMonthMoment.format("MMMM");
         var self = this;
         var calendarBody = Polymer.dom(this.$.calendarBody);
         var calendarRows = calendarBody.querySelectorAll('.calendar-row');
@@ -326,11 +357,16 @@ Missing features needed for at-form-date
             day.setAttribute('day-identifier', dayIdentifier);
             day.innerHTML = clone.date();
 
+            Polymer.dom(day).classList.remove('selected');
+            Polymer.dom(day).classList.remove('next-prev-month');
+            Polymer.dom(day).classList.remove('start-date');
+            Polymer.dom(day).classList.remove('end-date');
+            Polymer.dom(day).classList.remove('in-range');
             if (clone.isSame(selectedMoment)) {
               Polymer.dom(day).classList.add('selected');
             }
             if (clone.month() !== firstOfMonthMoment.month()) {
-              Polymer.dom(day).classList.add('disabled');
+              Polymer.dom(day).classList.add('next-prev-month');
             }
             if (clone.isSame(startDateMoment)) {
               Polymer.dom(day).classList.add('start-date');
@@ -345,6 +381,28 @@ Missing features needed for at-form-date
           });
         });
 
+      },
+      _updateDayIdentifiers: function (newFormat, oldFormat) {
+        var self = this;
+        var calendarBody = Polymer.dom(this.$.calendarBody);
+        var calendarRows = calendarBody.querySelectorAll('.calendar-row');
+        calendarRows.forEach(function (calendarRow, rowIndex) {
+          var days = Polymer.dom(calendarRow).querySelectorAll('.day');
+          days.forEach(function (day, dayIndex) {
+            var currentIdentifier = day.getAttribute('day-identifier');
+            if (currentIdentifier) {
+              var currentMoment = moment(currentIdentifier, oldFormat, true);
+              var newIdentifier = currentMoment.format(newFormat);
+              Polymer.dom(day).setAttribute('day-identifier', newIdentifier);
+            }
+          });
+        });
+      },
+      _fireStartDateChanged: function (newValue) {
+        this.fire('start-date-changed', { value: newValue });
+      },
+      _fireEndDateChanged: function (newValue) {
+        this.fire('end-date-changed', { value: newValue });
       }
     });
   </script>
