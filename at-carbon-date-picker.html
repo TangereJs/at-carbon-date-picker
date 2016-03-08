@@ -24,8 +24,9 @@ Missing features needed for at-form-date
           <div class="calendar-button" on-tap="_backClicked">
             <at-carbon-icon class="calendar-icon" icon="arrow-left"></at-carbon-icon>
           </div>
-          <div class="month-year-view">
-            <div class="month-name">{{_monthName}}</div><div class="year">{{_year}}</div>
+          <div class="month-year-view" on-tap="_monthYearClicked">
+            <div class="month-name">{{_monthName}}</div>
+            <div class="year">{{_year}}</div>
           </div>
           <div class="calendar-button" on-tap="_nextClicked">
             <at-carbon-icon class="calendar-icon" icon="arrow-right"></at-carbon-icon>
@@ -38,59 +39,84 @@ Missing features needed for at-form-date
         </div>
       </div>
       <div id="calendarBody" class="calendar-body" on-tap="_dateClicked">
-        <div class="calendar-row">
-          <div class="day">day</div>
-          <div class="day">day</div>
-          <div class="day">day</div>
-          <div class="day">day</div>
-          <div class="day">day</div>
-          <div class="day">day</div>
-          <div class="day">day</div>
+        <div class="day-picker">
+          <div class="calendar-row">
+            <div class="day">day</div>
+            <div class="day">day</div>
+            <div class="day">day</div>
+            <div class="day">day</div>
+            <div class="day">day</div>
+            <div class="day">day</div>
+            <div class="day">day</div>
+          </div>
+          <div class="calendar-row">
+            <div class="day">day</div>
+            <div class="day">day</div>
+            <div class="day">day</div>
+            <div class="day">day</div>
+            <div class="day">day</div>
+            <div class="day">day</div>
+            <div class="day">day</div>
+          </div>
+          <div class="calendar-row">
+            <div class="day">day</div>
+            <div class="day">day</div>
+            <div class="day">day</div>
+            <div class="day">day</div>
+            <div class="day">day</div>
+            <div class="day">day</div>
+            <div class="day">day</div>
+          </div>
+          <div class="calendar-row">
+            <div class="day">day</div>
+            <div class="day">day</div>
+            <div class="day">day</div>
+            <div class="day">day</div>
+            <div class="day">day</div>
+            <div class="day">day</div>
+            <div class="day">day</div>
+          </div>
+          <div class="calendar-row">
+            <div class="day">day</div>
+            <div class="day">day</div>
+            <div class="day">day</div>
+            <div class="day">day</div>
+            <div class="day">day</div>
+            <div class="day">day</div>
+            <div class="day">day</div>
+          </div>
+          <div class="calendar-row">
+            <div class="day">day</div>
+            <div class="day">day</div>
+            <div class="day">day</div>
+            <div class="day">day</div>
+            <div class="day">day</div>
+            <div class="day">day</div>
+            <div class="day">day</div>
+          </div>
         </div>
-        <div class="calendar-row">
-          <div class="day">day</div>
-          <div class="day">day</div>
-          <div class="day">day</div>
-          <div class="day">day</div>
-          <div class="day">day</div>
-          <div class="day">day</div>
-          <div class="day">day</div>
+        <div class="month-picker">
+          <div class="calendar-row">
+            <div class="month">January</div>
+            <div class="month">February</div>
+            <div class="month">March</div>
+            <div class="month">April</div>
+          </div>
+          <div class="calendar-row">
+            <div class="month">May</div>
+            <div class="month">June</div>
+            <div class="month">July</div>
+            <div class="month">August</div>
+          </div>
+          <div class="calendar-row">
+            <div class="month">September</div>
+            <div class="month">October</div>
+            <div class="month">November</div>
+            <div class="month">December</div>
+          </div>
         </div>
-        <div class="calendar-row">
-          <div class="day">day</div>
-          <div class="day">day</div>
-          <div class="day">day</div>
-          <div class="day">day</div>
-          <div class="day">day</div>
-          <div class="day">day</div>
-          <div class="day">day</div>
-        </div>
-        <div class="calendar-row">
-          <div class="day">day</div>
-          <div class="day">day</div>
-          <div class="day">day</div>
-          <div class="day">day</div>
-          <div class="day">day</div>
-          <div class="day">day</div>
-          <div class="day">day</div>
-        </div>
-        <div class="calendar-row">
-          <div class="day">day</div>
-          <div class="day">day</div>
-          <div class="day">day</div>
-          <div class="day">day</div>
-          <div class="day">day</div>
-          <div class="day">day</div>
-          <div class="day">day</div>
-        </div>
-        <div class="calendar-row">
-          <div class="day">day</div>
-          <div class="day">day</div>
-          <div class="day">day</div>
-          <div class="day">day</div>
-          <div class="day">day</div>
-          <div class="day">day</div>
-          <div class="day">day</div>
+        <div class="year-picker">
+
         </div>
       </div>
     </div>
@@ -100,14 +126,14 @@ Missing features needed for at-form-date
      * fired when new startDate is selected from date-picker
      * @event start-date-changed
      */
-     /**
-      * fired when new endDate is selected from date-picker
-      * @event end-date-changed
-      */
+    /**
+     * fired when new endDate is selected from date-picker
+     * @event end-date-changed
+     */
     'use strict';
     Polymer({
       is: 'at-carbon-date-picker',
-      behaviors: [ Tangere.behaviors.i18n ],
+      behaviors: [Tangere.behaviors.i18n],
       properties: {
         /**
          * Holds the mode of operation for date-picker.
@@ -176,10 +202,10 @@ Missing features needed for at-form-date
           observer: 'formatChanged'
         }
       },
-      ready: function () {
+      ready: function() {
         this._initializeAtCarbonDatePicker();
       },
-      _createLocaleMoment: function () {
+      _createLocaleMoment: function() {
         // getLocale function is from at-i18n; it gets the local from the browser settings
         var locale = this.getLocale();
         // we create localized moment instance
@@ -187,7 +213,7 @@ Missing features needed for at-form-date
 
         return localeMoment;
       },
-      _createCurrentMomentFor: function (dateMoment) {
+      _createCurrentMomentFor: function(dateMoment) {
         var locale = this.getLocale();
         var year = dateMoment.year();
         var month = dateMoment.month();
@@ -195,7 +221,7 @@ Missing features needed for at-form-date
         return result;
       },
       // this function is called _initializeAtCarbonDatePicker because at-i18n already has a function called _initialize
-      _initializeAtCarbonDatePicker: function () {
+      _initializeAtCarbonDatePicker: function() {
         if (this._isInitialized) {
           return;
         }
@@ -224,7 +250,7 @@ Missing features needed for at-form-date
           _daysOfWeekStr = "1_2_3_4_5_6_7";
         }
 
-        this._daysOfWeek = _daysOfWeekStr.split("_").map(function (n) {
+        this._daysOfWeek = _daysOfWeekStr.split("_").map(function(n) {
           return localeClone.day(n).format("dd");
         });
 
@@ -235,12 +261,14 @@ Missing features needed for at-form-date
           this._internalFormatUpdate = false;
         }
       },
-      formatChanged: function (newValue, oldValue) {
+      formatChanged: function(newValue, oldValue) {
         // we need to defend against invalid formats because invalid format will poison the values
         // we should have a list of valid formats and allow use only those formats
         // everything else should be rejected
 
-        if (this._internalFormatUpdate) { return; }
+        if (this._internalFormatUpdate) {
+          return;
+        }
         // this is the only changed callback called before ready function
         // so call _initializeAtCarbonDatePicker here
         this._initializeAtCarbonDatePicker();
@@ -253,7 +281,9 @@ Missing features needed for at-form-date
           oldValue = format;
         }
 
-        if (this.startDate === "" || this.endDate === "") { return; }
+        if (this.startDate === "" || this.endDate === "") {
+          return;
+        }
 
         var startMoment = moment(this.startDate, oldValue);
         var endMoment = moment(this.endDate, oldValue);
@@ -269,8 +299,10 @@ Missing features needed for at-form-date
         this._fireStartDateChanged(this.startDate);
         this._fireEndDateChanged(this.endDate);
       },
-      startDateChanged: function (newValue, oldValue) {
-        if (this._isInternalStartDateUpdate) { return; }
+      startDateChanged: function(newValue, oldValue) {
+        if (this._isInternalStartDateUpdate) {
+          return;
+        }
         this._initializeAtCarbonDatePicker();
 
         // parameter can be null, undefined, numbers and in incorrect format
@@ -284,8 +316,10 @@ Missing features needed for at-form-date
 
         this._refreshCalendar(this.startDate, this.endDate);
       },
-      endDateChanged: function (newValue, oldValue) {
-        if (this._isInternalEndDateUpdate) { return; }
+      endDateChanged: function(newValue, oldValue) {
+        if (this._isInternalEndDateUpdate) {
+          return;
+        }
         this._initializeAtCarbonDatePicker();
 
         // parameter can be null, undefined, numbers and in incorrect format
@@ -299,31 +333,31 @@ Missing features needed for at-form-date
 
         this._refreshCalendar(this.startDate, this.endDate);
       },
-      endChanged: function (newValue, oldValue) {
+      endChanged: function(newValue, oldValue) {
         this._initializeAtCarbonDatePicker();
-        if (this.startDate && this.endDate){
+        if (this.startDate && this.endDate) {
           this._updateCurrentMoment();
         }
 
         this._refreshCalendar(this.startDate, this.endDate);
       },
-      _backClicked: function () {
+      _backClicked: function() {
         this._moveMonth(-1);
       },
-      _nextClicked: function () {
+      _nextClicked: function() {
         this._moveMonth(1);
       },
-      _moveMonth: function (n) {
+      _moveMonth: function(n) {
         this._currentMoment.add(n, 'month');
         this._refreshCalendar(this.startDate, this.endDate);
       },
-      _updateCurrentMoment: function () {
+      _updateCurrentMoment: function() {
         var selectedDate = this._getSelectedDate(this.end, this.startDate, this.endDate);
         var selectedMoment = moment(selectedDate, this.format, true);
         var currentMoment = this._createCurrentMomentFor(selectedMoment);
         this._currentMoment = currentMoment;
       },
-      _dateClicked: function (event) {
+      _dateClicked: function(event) {
         var element = event.target;
         var dayIdentifier = element.getAttribute('day-identifier');
         if (dayIdentifier) {
@@ -344,14 +378,14 @@ Missing features needed for at-form-date
           this._fireEndDateChanged(this.endDate);
         }
       },
-      _getSelectedDate: function (isEnd, startDate, endDate) {
+      _getSelectedDate: function(isEnd, startDate, endDate) {
         if (isEnd) {
           return endDate;
         } else {
           return startDate;
         }
       },
-      _refreshCalendar: function (startDate, endDate) {
+      _refreshCalendar: function(startDate, endDate) {
         var locale = this.getLocale();
         var selectedDate = this._getSelectedDate(this.end, startDate, endDate);
         var selectedMoment = moment(selectedDate, this.format).locale(locale);
@@ -369,10 +403,10 @@ Missing features needed for at-form-date
         var self = this;
         var calendarBody = Polymer.dom(this.$.calendarBody);
         var calendarRows = calendarBody.querySelectorAll('.calendar-row');
-        calendarRows.forEach(function (calendarRow, rowIndex) {
+        calendarRows.forEach(function(calendarRow, rowIndex) {
           var days = Polymer.dom(calendarRow).querySelectorAll('.day');
-          days.forEach(function (day, dayIndex) {
-            var offset = startIndex + rowIndex*7 + dayIndex;
+          days.forEach(function(day, dayIndex) {
+            var offset = startIndex + rowIndex * 7 + dayIndex;
             var clone = firstOfMonthMoment.clone();
             clone.add(offset, 'days');
             var dayIdentifier = clone.format(self.format);
@@ -404,13 +438,13 @@ Missing features needed for at-form-date
         });
 
       },
-      _updateDayIdentifiers: function (newFormat, oldFormat) {
+      _updateDayIdentifiers: function(newFormat, oldFormat) {
         var self = this;
         var calendarBody = Polymer.dom(this.$.calendarBody);
         var calendarRows = calendarBody.querySelectorAll('.calendar-row');
-        calendarRows.forEach(function (calendarRow, rowIndex) {
+        calendarRows.forEach(function(calendarRow, rowIndex) {
           var days = Polymer.dom(calendarRow).querySelectorAll('.day');
-          days.forEach(function (day, dayIndex) {
+          days.forEach(function(day, dayIndex) {
             var currentIdentifier = day.getAttribute('day-identifier');
             if (currentIdentifier) {
               var currentMoment = moment(currentIdentifier, oldFormat, true);
@@ -420,11 +454,15 @@ Missing features needed for at-form-date
           });
         });
       },
-      _fireStartDateChanged: function (newValue) {
-        this.fire('start-date-changed', { value: newValue });
+      _fireStartDateChanged: function(newValue) {
+        this.fire('start-date-changed', {
+          value: newValue
+        });
       },
-      _fireEndDateChanged: function (newValue) {
-        this.fire('end-date-changed', { value: newValue });
+      _fireEndDateChanged: function(newValue) {
+        this.fire('end-date-changed', {
+          value: newValue
+        });
       }
     });
   </script>
