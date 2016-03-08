@@ -5,6 +5,7 @@
     <title>date-picker demo</title>
     <script src="../webcomponentsjs/webcomponents-lite.js" charset="utf-8"></script>
     <link rel="import" href="at-carbon-date-picker.html">
+    <link rel="import" href="../at-form-checkbox/at-form-checkbox.html">
     <style media="screen">
       .container {
         margin: 0 5%;
@@ -13,7 +14,43 @@
   </head>
   <body>
     <div class="container">
-      <at-carbon-date-picker></at-carbon-date-picker>
+      <div class="date-picker-container">
+        <at-carbon-date-picker id="datePicker"></at-carbon-date-picker>
+      </div>
+      <div>
+        <at-form-checkbox id="isEnd" label="Is end date?"></at-form-checkbox>
+      </div>
+      <div class="echo-container">
+        <div>
+          <label>Start Date:</label><label id="startDateEcho"></label>
+        </div>
+        <div>
+          <label>End Date:</label><label id="endDateEcho"></label>
+        </div>
+      </div>
     </div>
+    <script>
+      document.addEventListener('WebComponentsReady', function(event) {
+        var datePicker = document.getElementById('datePicker');
+        var startDateEcho = document.getElementById('startDateEcho');
+        var endDateEcho = document.getElementById('endDateEcho');
+        var isEnd = document.getElementById('isEnd');
+
+        datePicker.end = isEnd.value;
+        isEnd.addEventListener('value-changed', function(event) {
+          datePicker.end = isEnd.value;
+        });
+
+        startDateEcho.innerHTML = datePicker.startDate;
+        datePicker.addEventListener('start-date-changed', function(event) {
+          startDateEcho.innerHTML = datePicker.startDate;
+        });
+
+        endDateEcho.innerHTML = datePicker.endDate;
+        datePicker.addEventListener('end-date-changed', function(event) {
+          endDateEcho.innerHTML = datePicker.endDate;
+        });
+      });
+    </script>
   </body>
 </html>
