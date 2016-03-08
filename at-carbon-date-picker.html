@@ -96,6 +96,14 @@ Missing features needed for at-form-date
     </div>
   </template>
   <script>
+    /**
+     * fired when new startDate is selected from date-picker
+     * @event start-date-changed
+     */
+     /**
+      * fired when new endDate is selected from date-picker
+      * @event end-date-changed
+      */
     'use strict';
     Polymer({
       is: 'at-carbon-date-picker',
@@ -119,24 +127,49 @@ Missing features needed for at-form-date
         //   type: Boolean,
         //   value: false
         // },
-        // when used in at-form-daterange end=true marks the date picker for end date
+        /**
+         * end property is used in at-form-daterange <br>
+         * when true, date picker will mark end date of the range as selected date
+         * and will update end date when selecting date from the date picker <br>
+         * when false, date picker will mark start date of the range as selected date
+         * and will update start date when selecting date from the date picker
+         * @property end
+         * @type boolean
+         * @default false
+         */
         end: {
           type: Boolean,
           value: false,
           observer: 'endChanged'
         },
-        // when used in at-form-daterange startDate is the start of the date range
+        /**
+         * holds the string value of the startDate of the date picker
+         * @property startDate
+         * @type String
+         * @default ''
+         */
         startDate: {
           type: String,
           value: '',
           observer: 'startDateChanged'
         },
-        // when used in at-form-daterange endDate is the end of the date range
+        /**
+         * holds the string value of the endDate of the date picker
+         * @property endDate
+         * @type String
+         * @default ''
+         */
         endDate: {
           type: String,
           value: '',
           observer: 'endDateChanged'
         },
+        /**
+         * holds the string value of the date format with which startDate and endDate values will be formatted
+         * @property format
+         * @type String
+         * @default ''
+         */
         format: {
           type: String,
           value: '',
