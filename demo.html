@@ -5,7 +5,7 @@
     <title>date-picker demo</title>
     <script src="../webcomponentsjs/webcomponents-lite.js" charset="utf-8"></script>
     <link rel="import" href="at-carbon-date-picker.html">
-    <link rel="import" href="../at-form-checkbox/at-form-checkbox.html">
+    <link rel="import" href="../at-form-lookup/at-form-lookup.html">
     <style media="screen">
       .container {
         margin: 0 5%;
@@ -18,7 +18,7 @@
         <at-carbon-date-picker id="datePicker"></at-carbon-date-picker>
       </div>
       <div>
-        <at-form-checkbox id="isEnd" label="Is end date?"></at-form-checkbox>
+        <at-form-lookup id="modePicker" label="Is end date?"></at-form-lookup>
       </div>
       <div class="echo-container">
         <div>
@@ -34,11 +34,22 @@
         var datePicker = document.getElementById('datePicker');
         var startDateEcho = document.getElementById('startDateEcho');
         var endDateEcho = document.getElementById('endDateEcho');
-        var isEnd = document.getElementById('isEnd');
+        var modePicker = document.getElementById('modePicker');
 
-        datePicker.end = isEnd.value;
-        isEnd.addEventListener('value-changed', function(event) {
-          datePicker.end = isEnd.value;
+        modePicker.xvaluelist = [{
+          title: "Single",
+          value: "single"
+        }, {
+          title: "Start of date range",
+          value: "start-range"
+        }, {
+          title: "End of date range",
+          value: "end-range"
+        }];
+        modePicker.value = 'single';
+        datePicker.mode = modePicker.value;
+        modePicker.addEventListener('value-changed', function(event) {
+          datePicker.mode = modePicker.value;
         });
 
         startDateEcho.innerHTML = datePicker.startDate;
