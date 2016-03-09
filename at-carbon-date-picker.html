@@ -132,9 +132,9 @@ Missing features needed for at-form-date
             <div class="year">2021</div>
             <div class="year">2022</div>
           </div>
-          </div>
         </div>
       </div>
+    </div>
     </div>
   </template>
   <script>
@@ -153,36 +153,28 @@ Missing features needed for at-form-date
       properties: {
         /**
          * Holds the mode of operation for date-picker.
-         * Two possible values "single" and "range"
+         * Three possible values "single", "range-start" and "range-end"
          * single is used for at-form-date which operates on only one value
-         * range is used for at-form-daterange which operates on start/end values
+         * range-start and range-end are used for at-form-daterange which operates on start/end values
+         * @property mode
+         * @type String
+         * @default 'single'
          */
-        // mode: {
-        //   type: String,
-        //   value: 'single',
-        //   observer: 'modeChanged'
-        //   xtype: 'enum',
-        //   xvaluelist: [{ title: "Single", value: "single"}, { title: "Range", value: "range"}]
-        // }
-        // when used in at-form-daterange start=true marks the date picker for start date
-        // start: {
-        //   type: Boolean,
-        //   value: false
-        // },
-        /**
-         * end property is used in at-form-daterange <br>
-         * when true, date picker will mark end date of the range as selected date
-         * and will update end date when selecting date from the date picker <br>
-         * when false, date picker will mark start date of the range as selected date
-         * and will update start date when selecting date from the date picker
-         * @property end
-         * @type boolean
-         * @default false
-         */
-        end: {
-          type: Boolean,
-          value: false,
-          observer: 'endChanged'
+        mode: {
+          type: String,
+          value: 'single',
+          observer: 'modeChanged',
+          xtype: 'enum',
+          xvaluelist: [{
+            title: "Single",
+            value: "single"
+          }, {
+            title: "Start of date range",
+            value: "start-range"
+          }, {
+            title: "End of date range",
+            value: "end-range"
+          }]
         },
         /**
          * holds the string value of the startDate of the date picker
@@ -245,12 +237,6 @@ Missing features needed for at-form-date
         // and later, year, month jumping and setting time in at-form-date
         this._currentMoment = this._createCurrentMomentFor(localeMoment);
 
-        // we need year to be displayed in the date-picker
-        // we get this from localized moment instance
-        this._year = localeMoment.year();
-        // we get month name from localized moment instance
-        this._monthName = localeMoment.format("MMMM");
-
         var localeClone = localeMoment.clone();
         // we figure out starting day of week for current locale
         var startOfWeekNum = localeClone.startOf('week').day();
@@ -267,6 +253,27 @@ Missing features needed for at-form-date
 
         this._format = this._localizedFormat("date");
       },
+      modeChanged: function(newValue, oldValue) {
+        this._initializeAtCarbonDatePicker();
+
+        if (newValue === "single") {
+          this._isInternalStartDateUpdate = true;
+          this._isInternalEndDateUpdate = true;
+          if (this.startDate) {
+            this.endDate = this.startDate;
+          } else {
+            this.startDate = this.endDate;
+          }
+          this._isInternalStartDateUpdate = false;
+          this._isInternalEndDateUpdate = false;
+        }
+
+        if (this.startDate && this.endDate) {
+          this._updateCurrentMoment();
+        }
+
+        this._refreshCalendar();
+      },
       startDateChanged: function(newValue, oldValue) {
         if (this._isInternalStartDateUpdate) {
           return;
@@ -282,7 +289,7 @@ Missing features needed for at-form-date
 
         this._updateCurrentMoment();
 
-        this._refreshCalendar(this.startDate, this.endDate);
+        this._refreshCalendar();
       },
       endDateChanged: function(newValue, oldValue) {
         if (this._isInternalEndDateUpdate) {
@@ -299,15 +306,7 @@ Missing features needed for at-form-date
 
         this._updateCurrentMoment();
 
-        this._refreshCalendar(this.startDate, this.endDate);
-      },
-      endChanged: function(newValue, oldValue) {
-        this._initializeAtCarbonDatePicker();
-        if (this.startDate && this.endDate) {
-          this._updateCurrentMoment();
-        }
-
-        this._refreshCalendar(this.startDate, this.endDate);
+        this._refreshCalendar();
       },
       _previousClicked: function() {
         var pickMode = this._pickMode;
@@ -318,7 +317,7 @@ Missing features needed for at-form-date
         } else if (pickMode === "pick_year") {
           this._currentMoment.add(-12, 'year');
         }
-        this._refreshCalendar(this.startDate, this.endDate);
+        this._refreshCalendar();
       },
       _nextClicked: function() {
         var pickMode = this._pickMode;
@@ -329,10 +328,10 @@ Missing features needed for at-form-date
         } else if (pickMode === "pick_year") {
           this._currentMoment.add(12, 'year');
         }
-        this._refreshCalendar(this.startDate, this.endDate);
+        this._refreshCalendar();
       },
       _updateCurrentMoment: function() {
-        var selectedDate = this._getSelectedDate(this.end, this.startDate, this.endDate);
+        var selectedDate = this._getSelectedDate();
         var selectedMoment = moment(selectedDate, this._format, true);
         var currentMoment = this._createCurrentMomentFor(selectedMoment);
         this._currentMoment = currentMoment;
@@ -342,18 +341,25 @@ Missing features needed for at-form-date
         var dayIdentifier = element.getAttribute('day-identifier');
         if (dayIdentifier) {
 
-          if (this.end) {
+          if (this.mode === "single") {
+            this._isInternalStartDateUpdate = true;
             this._isInternalEndDateUpdate = true;
+            this.startDate = dayIdentifier;
             this.endDate = dayIdentifier;
+            this._isInternalStartDateUpdate = false;
             this._isInternalEndDateUpdate = false;
-          } else {
+          } else if (this.mode === "start-range") {
             this._isInternalStartDateUpdate = true;
             this.startDate = dayIdentifier;
             this._isInternalStartDateUpdate = false;
+          } else {
+            this._isInternalEndDateUpdate = true;
+            this.endDate = dayIdentifier;
+            this._isInternalEndDateUpdate = false;
           }
 
           var locale = this.getLocale();
-          var selectedDate = this._getSelectedDate(this.end, this.startDate, this.endDate);
+          var selectedDate = this._getSelectedDate();
           var selectedMoment = moment(selectedDate, this._format).locale(locale);
           if (selectedMoment.isValid() && ((selectedMoment.month() !== this._currentMoment.month()) || (selectedMoment.year() !== this._currentMoment.year()))) {
             var selectedMonth = selectedMoment.month();
@@ -362,46 +368,48 @@ Missing features needed for at-form-date
             this._currentMoment.year(selectedYear);
           }
 
-          this._refreshCalendar(this.startDate, this.endDate);
+          this._refreshCalendar();
 
           this._fireStartDateChanged(this.startDate);
           this._fireEndDateChanged(this.endDate);
         }
       },
-      _monthClicked: function (event) {
+      _monthClicked: function(event) {
         var target = event.target;
         var monthIdentifierStr = target.getAttribute('month-identifier');
         var monthIdentifier = parseInt(monthIdentifierStr);
         this._currentMoment.month(monthIdentifier);
         this._pickMode = "pick_day";
-        this._refreshCalendar(this.startDate, this.endDate);
+        this._refreshCalendar();
       },
-      _yearClicked: function (event) {
+      _yearClicked: function(event) {
         var target = event.target;
         var yearIdentifierStr = target.getAttribute('year-identifier');
         var yearIdentifier = parseInt(yearIdentifierStr);
         this._currentMoment.year(yearIdentifier);
         this._pickMode = "pick_month";
-        this._refreshCalendar(this.startDate, this.endDate);
+        this._refreshCalendar();
       },
-      _changePickMode: function () {
+      _changePickMode: function() {
         if (!this._pickMode) {
           this._pickMode = "pick_day";
-        } else if (this._pickMode === "pick_day"){
+        } else if (this._pickMode === "pick_day") {
           this._pickMode = "pick_month";
         } else if (this._pickMode === "pick_month") {
           this._pickMode = "pick_year";
         }
-        this._refreshCalendar(this.startDate, this.endDate);
+        this._refreshCalendar();
       },
-      _getSelectedDate: function(isEnd, startDate, endDate) {
-        if (isEnd) {
-          return endDate;
-        } else {
-          return startDate;
+      _getSelectedDate: function() {
+        var result = this.startDate;
+        if (this.mode === "end-range") {
+          result = this.endDate;
         }
+        return result;
       },
-      _refreshCalendar: function(startDate, endDate) {
+      _refreshCalendar: function() {
+        var startDate = this.startDate;
+        var endDate = this.endDate;
         var dayPicker = this.$.dayPicker;
         var monthPicker = this.$.monthPicker;
         var yearPicker = this.$.yearPicker;
@@ -417,7 +425,7 @@ Missing features needed for at-form-date
         }
 
         var locale = this.getLocale();
-        var selectedDate = this._getSelectedDate(this.end, startDate, endDate);
+        var selectedDate = this._getSelectedDate();
         var selectedMoment = moment(selectedDate, this._format).locale(locale);
 
         var startDateMoment = moment(startDate, this._format).locale(locale);
@@ -443,7 +451,7 @@ Missing features needed for at-form-date
         calendarRows.forEach(function(calendarRow, rowIndex) {
           var days = Polymer.dom(calendarRow).querySelectorAll('.day');
           days.forEach(function(day, dayIndex) {
-            var offset = startIndex + (rowIndex-1) * 7 + dayIndex;
+            var offset = startIndex + (rowIndex - 1) * 7 + dayIndex;
             var clone = firstOfMonthMoment.clone();
             clone.add(offset, 'days');
             var dayIdentifier = clone.format(self._format);
@@ -501,7 +509,7 @@ Missing features needed for at-form-date
           value: newValue
         });
       },
-      _refreshMonthPicker: function () {
+      _refreshMonthPicker: function() {
         var currentMoment = this._currentMoment;
         var currentMonthIndex = currentMoment.month();
         var pickModeTitle = this.$.pickModeTitle;
@@ -519,9 +527,9 @@ Missing features needed for at-form-date
         var monthNamesArray = moment.monthsShort();
         moment.locale(prevLocale);
         var self = this;
-        monthRows.forEach(function (monthRow, rowIndex) {
+        monthRows.forEach(function(monthRow, rowIndex) {
           var months = Polymer.dom(monthRow).querySelectorAll('.month');
-          months.forEach(function (month, monthIndex) {
+          months.forEach(function(month, monthIndex) {
             var index = rowIndex * 4 + monthIndex;
             var monthNameStr = monthNamesArray[index];
             Polymer.dom(month).innerHTML = monthNameStr;
@@ -530,16 +538,16 @@ Missing features needed for at-form-date
           });
         });
       },
-      _getSelectedMoment: function () {
+      _getSelectedMoment: function() {
         var locale = this.getLocale();
-        var selectedDate = this._getSelectedDate(this.end, this.startDate, this.endDate);
+        var selectedDate = this._getSelectedDate();
         var selectedMoment = moment().locale(locale);
         if (selectedDate !== '') {
           selectedMoment = moment(selectedDate, this._format).locale(locale);
         }
         return selectedMoment;
       },
-      _refreshYearPicker: function () {
+      _refreshYearPicker: function() {
         var currentMoment = this._currentMoment;
         var selectedMoment = this._getSelectedMoment();
         var selectedYear = selectedMoment.year();
@@ -560,9 +568,9 @@ Missing features needed for at-form-date
         var yearPicker = this.$.yearPicker;
         var yearRows = Polymer.dom(yearPicker).querySelectorAll('.calendar-row');
         var self = this;
-        yearRows.forEach(function (yearRow, rowIndex) {
+        yearRows.forEach(function(yearRow, rowIndex) {
           var years = Polymer.dom(yearRow).querySelectorAll('.year');
-          years.forEach(function (year, yearIndex) {
+          years.forEach(function(year, yearIndex) {
             var index = rowIndex * 4 + yearIndex;
             var yearStr = yearStrs[index];
             Polymer.dom(year).innerHTML = yearStr;
