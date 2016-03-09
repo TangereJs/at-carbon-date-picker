@@ -205,17 +205,6 @@ Missing features needed for at-form-date
           type: String,
           value: '',
           observer: 'endDateChanged'
-        },
-        /**
-         * holds the string value of the date format with which startDate and endDate values will be formatted
-         * @property format
-         * @type String
-         * @default ''
-         */
-        format: {
-          type: String,
-          value: '',
-          observer: 'formatChanged'
         }
       },
       ready: function() {
@@ -276,50 +265,7 @@ Missing features needed for at-form-date
           return localeClone.day(n).format("dd");
         });
 
-        if (!this.format) {
-          // if format is not specified use localized format from at-i18n
-          this._internalFormatUpdate = true;
-          this.format = this._localizedFormat("date");
-          this._internalFormatUpdate = false;
-        }
-      },
-      formatChanged: function(newValue, oldValue) {
-        // we need to defend against invalid formats because invalid format will poison the values
-        // we should have a list of valid formats and allow use only those formats
-        // everything else should be rejected
-
-        if (this._internalFormatUpdate) {
-          return;
-        }
-        // this is the only changed callback called before ready function
-        // so call _initializeAtCarbonDatePicker here
-        this._initializeAtCarbonDatePicker();
-
-        var format = newValue;
-        if (!format) {
-          format = this._localizedFormat("date");
-        }
-        if (!oldValue) {
-          oldValue = format;
-        }
-
-        if (this.startDate === "" || this.endDate === "") {
-          return;
-        }
-
-        var startMoment = moment(this.startDate, oldValue);
-        var endMoment = moment(this.endDate, oldValue);
-        this._isInternalStartDateUpdate = true;
-        this.startDate = startMoment.format(format);
-        this._isInternalStartDateUpdate = false;
-        this._isInternalEndDateUpdate = true;
-        this.endDate = endMoment.format(format);
-        this._isInternalEndDateUpdate = false;
-
-        this._updateDayIdentifiers(format, oldValue);
-
-        this._fireStartDateChanged(this.startDate);
-        this._fireEndDateChanged(this.endDate);
+        this._format = this._localizedFormat("date");
       },
       startDateChanged: function(newValue, oldValue) {
         if (this._isInternalStartDateUpdate) {
@@ -329,7 +275,7 @@ Missing features needed for at-form-date
 
         // parameter can be null, undefined, numbers and in incorrect format
         // we need to validate it and log errors if invalid
-        var startValid = moment(newValue, this.format, true).isValid();
+        var startValid = moment(newValue, this._format, true).isValid();
         if (!startValid) {
           return;
         }
@@ -346,7 +292,7 @@ Missing features needed for at-form-date
 
         // parameter can be null, undefined, numbers and in incorrect format
         // we need to validate it and log errors if invalid
-        var endValid = moment(newValue, this.format, true).isValid();
+        var endValid = moment(newValue, this._format, true).isValid();
         if (!endValid) {
           return;
         }
@@ -387,7 +333,7 @@ Missing features needed for at-form-date
       },
       _updateCurrentMoment: function() {
         var selectedDate = this._getSelectedDate(this.end, this.startDate, this.endDate);
-        var selectedMoment = moment(selectedDate, this.format, true);
+        var selectedMoment = moment(selectedDate, this._format, true);
         var currentMoment = this._createCurrentMomentFor(selectedMoment);
         this._currentMoment = currentMoment;
       },
@@ -408,7 +354,7 @@ Missing features needed for at-form-date
 
           var locale = this.getLocale();
           var selectedDate = this._getSelectedDate(this.end, this.startDate, this.endDate);
-          var selectedMoment = moment(selectedDate, this.format).locale(locale);
+          var selectedMoment = moment(selectedDate, this._format).locale(locale);
           if (selectedMoment.isValid() && ((selectedMoment.month() !== this._currentMoment.month()) || (selectedMoment.year() !== this._currentMoment.year()))) {
             var selectedMonth = selectedMoment.month();
             this._currentMoment.month(selectedMonth);
@@ -472,10 +418,10 @@ Missing features needed for at-form-date
 
         var locale = this.getLocale();
         var selectedDate = this._getSelectedDate(this.end, startDate, endDate);
-        var selectedMoment = moment(selectedDate, this.format).locale(locale);
+        var selectedMoment = moment(selectedDate, this._format).locale(locale);
 
-        var startDateMoment = moment(startDate, this.format).locale(locale);
-        var endDateMoment = moment(endDate, this.format).locale(locale);
+        var startDateMoment = moment(startDate, this._format).locale(locale);
+        var endDateMoment = moment(endDate, this._format).locale(locale);
 
         var firstOfMonthMoment = this._currentMoment;
         var firstDayOfMonthOffset = firstOfMonthMoment.day();
@@ -500,7 +446,7 @@ Missing features needed for at-form-date
             var offset = startIndex + (rowIndex-1) * 7 + dayIndex;
             var clone = firstOfMonthMoment.clone();
             clone.add(offset, 'days');
-            var dayIdentifier = clone.format(self.format);
+            var dayIdentifier = clone.format(self._format);
             day.setAttribute('day-identifier', dayIdentifier);
             day.innerHTML = clone.date();
 
@@ -589,7 +535,7 @@ Missing features needed for at-form-date
         var selectedDate = this._getSelectedDate(this.end, this.startDate, this.endDate);
         var selectedMoment = moment().locale(locale);
         if (selectedDate !== '') {
-          selectedMoment = moment(selectedDate, this.format).locale(locale);
+          selectedMoment = moment(selectedDate, this._format).locale(locale);
         }
         return selectedMoment;
       },
