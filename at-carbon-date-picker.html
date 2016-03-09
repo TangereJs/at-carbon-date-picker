@@ -11,6 +11,7 @@ Missing features needed for at-form-date
 <link rel="import" href="../at-theme/at-theme.html">
 <link rel="import" href="../at-i18n/at-i18n-behavior.html">
 <link rel="import" href="../at-carbon-icon-button/at-carbon-icon-button.html">
+<link rel="import" href="../at-carbon-moment/momentjs-import.html">
 <link rel="import" href="styles/styles.html">
 
 <dom-module id="at-carbon-date-picker">
@@ -21,25 +22,22 @@ Missing features needed for at-form-date
     <div class="calendar">
       <div class="calendar-header">
         <div class="calendar-row">
-          <div class="calendar-button" on-tap="_backClicked">
+          <div class="calendar-button" on-tap="_previousClicked">
             <at-carbon-icon class="calendar-icon" icon="arrow-left"></at-carbon-icon>
           </div>
-          <div class="month-year-view" on-tap="_monthYearClicked">
-            <div class="month-name">{{_monthName}}</div>
-            <div class="year">{{_year}}</div>
-          </div>
+          <div id="pickModeTitle" class="pick-mode-title" on-tap="_changePickMode"></div>
           <div class="calendar-button" on-tap="_nextClicked">
             <at-carbon-icon class="calendar-icon" icon="arrow-right"></at-carbon-icon>
           </div>
         </div>
-        <div class="calendar-row">
-          <template is="dom-repeat" items="{{_daysOfWeek}}">
-            <div class="weekday-name">{{item}}</div>
-          </template>
-        </div>
       </div>
-      <div id="calendarBody" class="calendar-body" on-tap="_dateClicked">
-        <div class="day-picker">
+      <div id="calendarBody" class="calendar-body">
+        <div id="dayPicker" class="day-picker" on-tap="_dateClicked">
+          <div class="calendar-row">
+            <template is="dom-repeat" items="{{_daysOfWeek}}">
+              <div class="weekday-name">{{item}}</div>
+            </template>
+          </div>
           <div class="calendar-row">
             <div class="day">day</div>
             <div class="day">day</div>
@@ -95,7 +93,7 @@ Missing features needed for at-form-date
             <div class="day">day</div>
           </div>
         </div>
-        <div class="month-picker">
+        <div id="monthPicker" class="month-picker hidden" on-tap="_monthClicked">
           <div class="calendar-row">
             <div class="month">January</div>
             <div class="month">February</div>
@@ -115,8 +113,26 @@ Missing features needed for at-form-date
             <div class="month">December</div>
           </div>
         </div>
-        <div class="year-picker">
-
+        <div id="yearPicker" class="year-picker hidden" on-tap="_yearClicked">
+          <div class="calendar-row">
+            <div class="year">2011</div>
+            <div class="year">2012</div>
+            <div class="year">2013</div>
+            <div class="year">2014</div>
+          </div>
+          <div class="calendar-row">
+            <div class="year">2015</div>
+            <div class="year">2016</div>
+            <div class="year">2017</div>
+            <div class="year">2018</div>
+          </div>
+          <div class="calendar-row">
+            <div class="year">2019</div>
+            <div class="year">2020</div>
+            <div class="year">2021</div>
+            <div class="year">2022</div>
+          </div>
+          </div>
         </div>
       </div>
     </div>
@@ -226,6 +242,12 @@ Missing features needed for at-form-date
           return;
         }
         this._isInitialized = true;
+
+        // pick mode says what is currently available for picking from the calendar
+        // "pick_day" says that days are currently available for picking
+        // "pick_month" says that months are currently available for picking
+        // "pick_year" says that years are currently available for picking
+        this._pickMode = "pick_day";
 
         // we create the new locale moment
         var localeMoment = this._createLocaleMoment();
@@ -341,14 +363,26 @@ Missing features needed for at-form-date
 
         this._refreshCalendar(this.startDate, this.endDate);
       },
-      _backClicked: function() {
-        this._moveMonth(-1);
+      _previousClicked: function() {
+        var pickMode = this._pickMode;
+        if (pickMode === "pick_day") {
+          this._currentMoment.add(-1, 'month');
+        } else if (pickMode === "pick_month") {
+          this._currentMoment.add(-1, 'year');
+        } else if (pickMode === "pick_year") {
+          this._currentMoment.add(-12, 'year');
+        }
+        this._refreshCalendar(this.startDate, this.endDate);
       },
       _nextClicked: function() {
-        this._moveMonth(1);
-      },
-      _moveMonth: function(n) {
-        this._currentMoment.add(n, 'month');
+        var pickMode = this._pickMode;
+        if (pickMode === "pick_day") {
+          this._currentMoment.add(1, 'month');
+        } else if (pickMode === "pick_month") {
+          this._currentMoment.add(1, 'year');
+        } else if (pickMode === "pick_year") {
+          this._currentMoment.add(12, 'year');
+        }
         this._refreshCalendar(this.startDate, this.endDate);
       },
       _updateCurrentMoment: function() {
@@ -372,11 +406,47 @@ Missing features needed for at-form-date
             this._isInternalStartDateUpdate = false;
           }
 
+          var locale = this.getLocale();
+          var selectedDate = this._getSelectedDate(this.end, this.startDate, this.endDate);
+          var selectedMoment = moment(selectedDate, this.format).locale(locale);
+          if (selectedMoment.isValid() && ((selectedMoment.month() !== this._currentMoment.month()) || (selectedMoment.year() !== this._currentMoment.year()))) {
+            var selectedMonth = selectedMoment.month();
+            this._currentMoment.month(selectedMonth);
+            var selectedYear = selectedMoment.year();
+            this._currentMoment.year(selectedYear);
+          }
+
           this._refreshCalendar(this.startDate, this.endDate);
 
           this._fireStartDateChanged(this.startDate);
           this._fireEndDateChanged(this.endDate);
         }
+      },
+      _monthClicked: function (event) {
+        var target = event.target;
+        var monthIdentifierStr = target.getAttribute('month-identifier');
+        var monthIdentifier = parseInt(monthIdentifierStr);
+        this._currentMoment.month(monthIdentifier);
+        this._pickMode = "pick_day";
+        this._refreshCalendar(this.startDate, this.endDate);
+      },
+      _yearClicked: function (event) {
+        var target = event.target;
+        var yearIdentifierStr = target.getAttribute('year-identifier');
+        var yearIdentifier = parseInt(yearIdentifierStr);
+        this._currentMoment.year(yearIdentifier);
+        this._pickMode = "pick_month";
+        this._refreshCalendar(this.startDate, this.endDate);
+      },
+      _changePickMode: function () {
+        if (!this._pickMode) {
+          this._pickMode = "pick_day";
+        } else if (this._pickMode === "pick_day"){
+          this._pickMode = "pick_month";
+        } else if (this._pickMode === "pick_month") {
+          this._pickMode = "pick_year";
+        }
+        this._refreshCalendar(this.startDate, this.endDate);
       },
       _getSelectedDate: function(isEnd, startDate, endDate) {
         if (isEnd) {
@@ -386,6 +456,20 @@ Missing features needed for at-form-date
         }
       },
       _refreshCalendar: function(startDate, endDate) {
+        var dayPicker = this.$.dayPicker;
+        var monthPicker = this.$.monthPicker;
+        var yearPicker = this.$.yearPicker;
+        this.toggleClass('hidden', this._pickMode !== "pick_day", dayPicker);
+        this.toggleClass('hidden', this._pickMode !== "pick_month", monthPicker);
+        this.toggleClass('hidden', this._pickMode !== "pick_year", yearPicker);
+        if (this._pickMode === "pick_month") {
+          this._refreshMonthPicker();
+          return;
+        } else if (this._pickMode === "pick_year") {
+          this._refreshYearPicker();
+          return;
+        }
+
         var locale = this.getLocale();
         var selectedDate = this._getSelectedDate(this.end, startDate, endDate);
         var selectedMoment = moment(selectedDate, this.format).locale(locale);
@@ -396,17 +480,24 @@ Missing features needed for at-form-date
         var firstOfMonthMoment = this._currentMoment;
         var firstDayOfMonthOffset = firstOfMonthMoment.day();
         var startIndex = 0 - firstDayOfMonthOffset;
+        if (startIndex === 0) {
+          startIndex = -7;
+        }
 
         // these two lines update the UI
-        this._year = firstOfMonthMoment.year();
-        this._monthName = firstOfMonthMoment.format("MMMM");
+        var pickModeTitle = this.$.pickModeTitle;
+        var yearStr = firstOfMonthMoment.format('YYYY');
+        var monthStr = firstOfMonthMoment.format("MMMM");
+        var titleStr = monthStr + " " + yearStr;
+        Polymer.dom(pickModeTitle).innerHTML = titleStr;
+
         var self = this;
         var calendarBody = Polymer.dom(this.$.calendarBody);
         var calendarRows = calendarBody.querySelectorAll('.calendar-row');
         calendarRows.forEach(function(calendarRow, rowIndex) {
           var days = Polymer.dom(calendarRow).querySelectorAll('.day');
           days.forEach(function(day, dayIndex) {
-            var offset = startIndex + rowIndex * 7 + dayIndex;
+            var offset = startIndex + (rowIndex-1) * 7 + dayIndex;
             var clone = firstOfMonthMoment.clone();
             clone.add(offset, 'days');
             var dayIdentifier = clone.format(self.format);
@@ -462,6 +553,76 @@ Missing features needed for at-form-date
       _fireEndDateChanged: function(newValue) {
         this.fire('end-date-changed', {
           value: newValue
+        });
+      },
+      _refreshMonthPicker: function () {
+        var currentMoment = this._currentMoment;
+        var currentMonthIndex = currentMoment.month();
+        var pickModeTitle = this.$.pickModeTitle;
+        // picker title text is the current year
+        var yearStr = currentMoment.format('YYYY');
+        Polymer.dom(pickModeTitle).innerHTML = yearStr;
+
+        // update available months
+        var monthPicker = this.$.monthPicker;
+        var monthRows = Polymer.dom(monthPicker).querySelectorAll('.calendar-row');
+        var prevLocale = moment.locale();
+        var locale = this.getLocale();
+        moment.locale(locale);
+        // moment.months gives long month names; moment.monthsShort gives short month names
+        var monthNamesArray = moment.monthsShort();
+        moment.locale(prevLocale);
+        var self = this;
+        monthRows.forEach(function (monthRow, rowIndex) {
+          var months = Polymer.dom(monthRow).querySelectorAll('.month');
+          months.forEach(function (month, monthIndex) {
+            var index = rowIndex * 4 + monthIndex;
+            var monthNameStr = monthNamesArray[index];
+            Polymer.dom(month).innerHTML = monthNameStr;
+            self.toggleClass('selected', index === currentMonthIndex, month);
+            Polymer.dom(month).setAttribute('month-identifier', index);
+          });
+        });
+      },
+      _getSelectedMoment: function () {
+        var locale = this.getLocale();
+        var selectedDate = this._getSelectedDate(this.end, this.startDate, this.endDate);
+        var selectedMoment = moment().locale(locale);
+        if (selectedDate !== '') {
+          selectedMoment = moment(selectedDate, this.format).locale(locale);
+        }
+        return selectedMoment;
+      },
+      _refreshYearPicker: function () {
+        var currentMoment = this._currentMoment;
+        var selectedMoment = this._getSelectedMoment();
+        var selectedYear = selectedMoment.year();
+        var currentYear = currentMoment.year();
+        var pickModeTitle = this.$.pickModeTitle;
+        var startYear = currentYear - 5;
+        var endYear = currentYear + 6;
+        // picker title text is the current year
+        var yearStr = startYear + ' - ' + endYear;
+        Polymer.dom(pickModeTitle).innerHTML = yearStr;
+
+        var yearStrs = [];
+        for (var i = 0; i < 12; i++) {
+          yearStrs.push(startYear + i);
+        }
+
+        // update years
+        var yearPicker = this.$.yearPicker;
+        var yearRows = Polymer.dom(yearPicker).querySelectorAll('.calendar-row');
+        var self = this;
+        yearRows.forEach(function (yearRow, rowIndex) {
+          var years = Polymer.dom(yearRow).querySelectorAll('.year');
+          years.forEach(function (year, yearIndex) {
+            var index = rowIndex * 4 + yearIndex;
+            var yearStr = yearStrs[index];
+            Polymer.dom(year).innerHTML = yearStr;
+            self.toggleClass('selected', yearStr === selectedYear, year);
+            Polymer.dom(year).setAttribute('year-identifier', yearStr);
+          });
         });
       }
     });
