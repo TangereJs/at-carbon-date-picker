@@ -24,13 +24,9 @@ Missing features needed for at-form-date
       <paper-shadow z="2"></paper-shadow>
       <div class="calendar-header">
         <div class="calendar-row">
-          <div class="calendar-button" on-tap="_previousClicked">
-            <at-carbon-icon class="calendar-icon" icon="arrow-left"></at-carbon-icon>
-          </div>
+          <at-carbon-icon-button class="calendar-button" icon="arrow-left" on-tap="_previousClicked"></at-carbon-icon-button>
           <div id="pickModeTitle" class="pick-mode-title" on-tap="_changePickMode"></div>
-          <div class="calendar-button" on-tap="_nextClicked">
-            <at-carbon-icon class="calendar-icon" icon="arrow-right"></at-carbon-icon>
-          </div>
+          <at-carbon-icon-button class="calendar-button" icon="arrow-right" on-tap="_nextClicked" ></at-carbon-icon-button>
         </div>
       </div>
       <div id="calendarBody" class="calendar-body">
