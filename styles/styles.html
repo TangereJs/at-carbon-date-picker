@@ -3,13 +3,11 @@
   <template>
     <style>
       .calendar {
+        @apply(--layout-vertical);
         padding: 4px;
         margin: 4px;
-        @apply(--at-form-daterange-calendar-border);
-        background: var(--at-form-daterange-calendar-background-color);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.176);
-        @apply(--layout-vertical);
         min-width: 250px;
+        position: relative;
       }
 
       .calendar-header {
@@ -30,10 +28,6 @@
          height: 24px;
        }
 
-      .calendar-button:hover {
-        @apply(--shadow-elevation-2dp);
-      }
-
       .pick-mode-title {
         @apply(--layout-horizontal);
         @apply(--layout-flex);
@@ -44,7 +38,7 @@
       }
 
       .pick-mode-title:hover {
-        background: var(--at-form-daterange-calendar-item-hover-background-color);
+        @apply(--at-text-selected);
       }
 
       .weekday-name {
@@ -73,29 +67,30 @@
       }
 
       .day:hover {
-        background: var(--at-form-daterange-calendar-item-hover-background-color);
+        @apply(--at-text-selected);
       }
 
       /*
       .day.disabled is for days in that are form previous and next month
       */
-      .day.next-prev-month {
-        color: var(--at-form-daterange-calendar-disabled-item-color);
+      .day.next-prev-month,
+      .day.next-prev-month.in-range {
+        @apply(--at-text-disabled);
       }
 
-      .day.next-prev-month:hover {
-        background: var(--at-form-daterange-calendar-background-color);
+      .day.next-prev-month:hover,
+      .day.next-prev-month.in-range:hover {
+        @apply(--at-text-selected);
+        @apply(--at-text-disabled);
       }
       /* .day.in-range is for days that are between start date and end date */
       .day.in-range {
-        background: var(--at-form-daterange-calendar-item-in-range-background-color);
+        @apply(--at-text-selected);
       }
 
       .day.selected,
       .day.selected:hover {
-        background-color: var(--at-form-daterange-calendar-active-item-background-color);
-        border-color: var(--at-form-daterange-calendar-active-item-border-color);
-        color: var(--at-form-daterange-calendar-active-item-text-color);
+        @apply(--at-text-primary-selected);
       }
 
       .day.selected.start-date {
@@ -124,16 +119,14 @@
 
       .month:hover,
       .year:hover {
-        background: var(--at-form-daterange-calendar-item-hover-background-color);
+        @apply(--at-text-selected);
       }
 
       .month.selected,
       .month.selected:hover,
       .year.selected,
       .year.selected:hover {
-        background-color: var(--at-form-daterange-calendar-active-item-background-color);
-        border-color: var(--at-form-daterange-calendar-active-item-border-color);
-        color: var(--at-form-daterange-calendar-active-item-text-color);
+        @apply(--at-text-primary-selected);
       }
     </style>
   </template>
