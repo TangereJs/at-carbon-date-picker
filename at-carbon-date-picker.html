@@ -283,6 +283,12 @@ Missing features needed for at-form-date
           return;
         }
 
+        if (this.mode === 'single') {
+          this._isInternalEndDateUpdate = true;
+          this.endDate = newValue;
+          this._isInternalEndDateUpdate = false;
+        }
+
         this._updateCurrentMoment();
 
         this._refreshCalendar();
@@ -298,6 +304,12 @@ Missing features needed for at-form-date
         var endValid = moment(newValue, this._format, true).isValid();
         if (!endValid) {
           return;
+        }
+
+        if (this.mode === 'single') {
+          this._isInternalStartDateUpdate = true;
+          this.startDate = newValue;
+          this._isInternalStartDateUpdate = false;
         }
 
         this._updateCurrentMoment();
