@@ -510,11 +510,15 @@ Missing features needed for at-form-date
       _fireStartDateChanged: function(newValue) {
         this.fire('start-date-changed', {
           value: newValue
+        }, {
+          bubbles: false
         });
       },
       _fireEndDateChanged: function(newValue) {
         this.fire('end-date-changed', {
           value: newValue
+        }, {
+          bubbles: false
         });
       },
       _refreshMonthPicker: function() {
