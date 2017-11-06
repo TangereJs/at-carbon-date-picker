@@ -1,0 +1,225 @@
+<!doctype html>
+<html>
+
+  <head>
+    <meta charset="UTF-8">
+    <title>at-carbon-date-picker tests</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../../web-component-tester/browser.js"></script>
+    <link rel="import" href="../at-carbon-date-picker.html">
+    <link rel="import" href="../../iron-test-helpers/iron-test-helpers.html" />
+  </head>
+
+  <body>
+
+    <test-fixture id="propertyTest">
+      <template>
+        <at-carbon-date-picker></at-carbon-date-picker>
+      </template>
+    </test-fixture>
+
+    <script>
+      suite('basic tests with valid values', function() {
+        // valid values can not be set as attributes because format is locale specific.
+        // if tests are run with different locale the parsing would fail
+
+        function pokeSingleMode(elt, momentInstance) {
+          elt.mode = 'single';
+          assert.equal('single', elt.mode);
+
+          // in single mode start date and end date are the same
+          var localizedFormat = elt._format;
+          
+          var actStartDateValue = momentInstance.format(localizedFormat);
+          var expStartDateValue = momentInstance.format(localizedFormat);
+          var expEndDateValue = momentInstance.format(localizedFormat);
+
+          elt.startDate = actStartDateValue;
+          assert.equal(elt.startDate, expStartDateValue);
+          assert.equal(elt.endDate, expEndDateValue);
+          assert.equal(elt.startDate, elt.endDate);
+        }
+
+        function pokeStartRangeMode(elt, momentInstance) {
+          elt.mode = 'start-range';
+          assert.equal('start-range', elt.mode);
+
+          // in single mode start date and end date are the same
+          var localizedFormat = elt._format;
+          
+          var actStartDateValue = momentInstance.format(localizedFormat);
+          var expStartDateValue = momentInstance.format(localizedFormat);
+          var expEndDateValue = '';
+
+          elt.startDate = actStartDateValue;
+          assert.equal(elt.startDate, expStartDateValue);
+          assert.equal(elt.endDate, '');
+          assert.notEqual(elt.startDate, elt.endDate);
+        }
+
+        function pokeEndRangeMode(elt, momentInstance) {
+          elt.mode = 'end-range';
+          assert.equal('end-range', elt.mode);
+
+          // in single mode start date and end date are the same
+          var localizedFormat = elt._format;
+          
+          var expStartDateValue = '';
+          var actEndDateValue = momentInstance.format(localizedFormat);
+          var expEndDateValue = momentInstance.format(localizedFormat);
+
+          elt.endDate = actEndDateValue;
+          assert.equal(elt.startDate, expStartDateValue);
+          assert.equal(elt.endDate, expEndDateValue);
+          assert.notEqual(elt.startDate, elt.endDate);
+        }
+
+        test('mode single', function() {
+          var elt = fixture('propertyTest');
+          
+          var eventCount = 0;
+          elt.addEventListener('start-date-changed', function(){ 
+            eventCount++;
+          });
+          elt.addEventListener('end-date-changed', function() {
+            eventCount++;
+          });
+
+          elt.mode = 'single';
+          assert.equal(elt.mode, 'single');
+          assert.equal(elt.startDate, '');
+          assert.equal(elt.endDate, '');
+
+          // poke the day buttons
+          var dayButtons = Polymer.dom(elt.$.dayPicker).querySelectorAll('.day');
+          dayButtons.forEach(function(dayButton) {
+            var dayIdentifier = dayButton.getAttribute('day-identifier');
+            var dayMoment = moment(dayIdentifier, elt._format);
+            var expDate = dayMoment.format(elt._format);
+
+            MockInteractions.tap(dayButton);
+
+            assert.equal(elt.startDate, expDate);
+            assert.equal(elt.endDate, expDate);
+          });
+
+          var expectedCount = 2 * dayButtons.length;
+          assert.equal(eventCount, expectedCount);
+          
+          // reset event count
+          eventCount = 0;
+
+          // poke the previous month button
+          MockInteractions.tap(elt.$['at-carbon-date-picker-left-arrow']);
+
+          // again, poke the day buttons
+          dayButtons = Polymer.dom(elt.$.dayPicker).querySelectorAll('.day');
+          dayButtons.forEach(function(dayButton) {
+            var dayIdentifier = dayButton.getAttribute('day-identifier');
+            var dayMoment = moment(dayIdentifier, elt._format);
+            var expDate = dayMoment.format(elt._format);
+
+            MockInteractions.tap(dayButton);
+
+            assert.equal(elt.startDate, expDate);
+            assert.equal(elt.endDate, expDate);
+          });
+
+          var expectedCount = 2 * dayButtons.length;
+          assert.equal(eventCount, expectedCount);
+
+          // reset event count
+          eventCount = 0;
+
+          // poke the next month button, twice to navigate to next month
+          MockInteractions.tap(elt.$['at-carbon-date-picker-right-arrow']);
+          MockInteractions.tap(elt.$['at-carbon-date-picker-right-arrow']);
+
+          // again, poke the day buttons
+          dayButtons = Polymer.dom(elt.$.dayPicker).querySelectorAll('.day');
+          dayButtons.forEach(function(dayButton) {
+            var dayIdentifier = dayButton.getAttribute('day-identifier');
+            var dayMoment = moment(dayIdentifier, elt._format);
+            var expDate = dayMoment.format(elt._format);
+
+            MockInteractions.tap(dayButton);
+
+            assert.equal(elt.startDate, expDate);
+            assert.equal(elt.endDate, expDate);
+          });
+
+          var expectedCount = 2 * dayButtons.length;
+          assert.equal(eventCount, expectedCount);
+
+          // TODO(ij): poke month fast picker
+
+          // TODO(ij): poke year fast picker
+
+        });
+
+        test('mode start range', function(done) {
+          var elt = fixture('propertyTest');
+
+          var eventCount = 0;
+          elt.addEventListener('start-date-changed', function(){ 
+            eventCount++;
+          });
+          elt.addEventListener('end-date-changed', function() {
+            eventCount++;
+          });
+
+          var momentInstance = moment("2016/05/01", "YYYY/MM/DD");
+          pokeStartRangeMode(elt, momentInstance);
+          
+          var momentInstance = moment("2015/09/05", "YYYY/MM/DD");
+          pokeStartRangeMode(elt, momentInstance);
+          
+          var momentInstance = moment("2017/10/15", "YYYY/MM/DD");
+          pokeStartRangeMode(elt, momentInstance);
+          
+          var momentInstance = moment("2019/07/04", "YYYY/MM/DD");
+          pokeStartRangeMode(elt, momentInstance);
+
+          flush(function() {
+            assert.equal(eventCount, 0);
+            done();
+          });
+        });
+
+        test('mode end range', function(done) { 
+          var elt = fixture('propertyTest');
+
+          var eventCount = 0;
+          elt.addEventListener('start-date-changed', function(){ 
+            eventCount++;
+          });
+          elt.addEventListener('end-date-changed', function() {
+            eventCount++;
+          });
+
+          var momentInstance = moment("2016/05/01", "YYYY/MM/DD");
+          pokeEndRangeMode(elt, momentInstance);
+          
+          var momentInstance = moment("2015/09/05", "YYYY/MM/DD");
+          pokeEndRangeMode(elt, momentInstance);
+          
+          var momentInstance = moment("2017/10/15", "YYYY/MM/DD");
+          pokeEndRangeMode(elt, momentInstance);
+          
+          var momentInstance = moment("2019/07/04", "YYYY/MM/DD");
+          pokeEndRangeMode(elt, momentInstance);
+
+          flush(function() {
+            assert.equal(eventCount, 0);
+            done();
+          });          
+        });
+
+      });
+
+    </script>
+
+  </body>
+
+</html>
