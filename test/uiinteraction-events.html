@@ -75,22 +75,68 @@
           assert.notEqual(elt.startDate, elt.endDate);
         }
 
-        test('mode single', function() {
-          var elt = fixture('propertyTest');
+        function doUIMonthInteraction(elt) {
+          // poke month fast picker
+          // tapping the month buttons doesn't change start date and end date
+          var expStartDate = elt.startDate;
+          var expEndDate = elt.endDate;
+          // moment obj to use as expected value
+          var expMoment = elt._currentMoment.clone();
+
+          MockInteractions.tap(elt.$.pickModeTitle);
+          assert.equal(elt.$.monthPicker.classList.contains('hidden'), false);
+
+          monthButtons = Polymer.dom(elt.$.monthPicker).querySelectorAll('.month');
+          monthButtons.forEach(function(monthButton, index) { 
+            var mIdentStr = monthButton.getAttribute('month-identifier');
+            var monthValue = parseInt(mIdentStr);
+            assert.equal(monthValue, index);
+
+            MockInteractions.tap(monthButton);
+
+            expMoment.month(monthValue);
+            var expMomentStr = expMoment.format(elt._format);
+            var currMomentStr = elt._currentMoment.format(elt._format);
+            assert.equal(currMomentStr, expMomentStr);
+
+            assert.equal(elt.startDate, expStartDate);
+            assert.equal(elt.endDate, expEndDate);
+          });
+        }
+
+        function doUIYearInteraction(elt) {
+          // poke year fast picker
+          // tapping the month buttons doesn't change start date and end date
+          var expStartDate = elt.startDate;
+          var expEndDate = elt.endDate;
+          // moment obj to use as expected value
+          var expMoment = elt._currentMoment.clone();
           
-          var eventCount = 0;
-          elt.addEventListener('start-date-changed', function(){ 
-            eventCount++;
-          });
-          elt.addEventListener('end-date-changed', function() {
-            eventCount++;
-          });
+          MockInteractions.tap(elt.$.pickModeTitle);
+          assert.equal(elt.$.monthPicker.classList.contains('hidden'), false);
+          MockInteractions.tap(elt.$.pickModeTitle);
+          assert.equal(elt.$.monthPicker.classList.contains('hidden'), true);
+          assert.equal(elt.$.yearPicker.classList.contains('hidden'), false);
 
-          elt.mode = 'single';
-          assert.equal(elt.mode, 'single');
-          assert.equal(elt.startDate, '');
-          assert.equal(elt.endDate, '');
+          yearButtons = Polymer.dom(elt.$.yearPicker).querySelectorAll('.year');
+          yearButtons.forEach(function(yearButton) { 
+            var yIdentStr = yearButton.getAttribute('year-identifier');
+            var yearValue = parseInt(yIdentStr);
 
+            MockInteractions.tap(yearButton);
+            
+            expMoment.year(yearValue);
+            var expMomentStr = expMoment.format(elt._format);
+            var currMomentStr = elt._currentMoment.format(elt._format);
+            assert.equal(currMomentStr, expMomentStr);
+
+
+            assert.equal(elt.startDate, expStartDate);
+            assert.equal(elt.endDate, expEndDate);
+          });          
+        }
+
+        function doFastPickDayInteraction(elt) {
           // poke the day buttons
           var dayButtons = Polymer.dom(elt.$.dayPicker).querySelectorAll('.day');
           dayButtons.forEach(function(dayButton) {
@@ -103,6 +149,30 @@
             assert.equal(elt.startDate, expDate);
             assert.equal(elt.endDate, expDate);
           });
+        }
+
+        test('mode single', function() {
+          var elt = fixture('propertyTest');
+          
+          var eventCount = 0;
+          elt.addEventListener('start-date-changed', function() { 
+            eventCount++;
+          });
+          elt.addEventListener('end-date-changed', function() {
+            eventCount++;
+          });
+
+          elt.mode = 'single';
+          assert.equal(elt.mode, 'single');
+          assert.equal(elt.startDate, '');
+          assert.equal(elt.endDate, '');
+
+          var momentInstance = moment("2016/05/01", "YYYY/MM/DD");
+          pokeSingleMode(elt, momentInstance);
+
+          // poke the day buttons
+          doFastPickDayInteraction(elt);
+          var dayButtons = Polymer.dom(elt.$.dayPicker).querySelectorAll('.day');
 
           var expectedCount = 2 * dayButtons.length;
           assert.equal(eventCount, expectedCount);
@@ -112,19 +182,10 @@
 
           // poke the previous month button
           MockInteractions.tap(elt.$['at-carbon-date-picker-left-arrow']);
-
-          // again, poke the day buttons
-          dayButtons = Polymer.dom(elt.$.dayPicker).querySelectorAll('.day');
-          dayButtons.forEach(function(dayButton) {
-            var dayIdentifier = dayButton.getAttribute('day-identifier');
-            var dayMoment = moment(dayIdentifier, elt._format);
-            var expDate = dayMoment.format(elt._format);
-
-            MockInteractions.tap(dayButton);
-
-            assert.equal(elt.startDate, expDate);
-            assert.equal(elt.endDate, expDate);
-          });
+          
+          // poke the day buttons
+          doFastPickDayInteraction(elt);
+          var dayButtons = Polymer.dom(elt.$.dayPicker).querySelectorAll('.day');
 
           var expectedCount = 2 * dayButtons.length;
           assert.equal(eventCount, expectedCount);
@@ -137,7 +198,46 @@
           MockInteractions.tap(elt.$['at-carbon-date-picker-right-arrow']);
 
           // again, poke the day buttons
-          dayButtons = Polymer.dom(elt.$.dayPicker).querySelectorAll('.day');
+          doFastPickDayInteraction(elt);
+          var dayButtons = Polymer.dom(elt.$.dayPicker).querySelectorAll('.day');
+
+          var expectedCount = 2 * dayButtons.length;
+          assert.equal(eventCount, expectedCount);
+
+          doUIMonthInteraction(elt);
+
+          doUIYearInteraction(elt);
+        });
+
+        test('mode start range', function() {
+          var elt = fixture('propertyTest');
+
+          var startDateEventCount = 0;
+          var endDateEventCount = 0;
+          elt.addEventListener('start-date-changed', function(){ 
+            ++startDateEventCount;
+          });
+          elt.addEventListener('end-date-changed', function() {
+            ++endDateEventCount;
+          });
+
+          var momentInstance = moment("2016/05/01", "YYYY/MM/DD");
+          pokeStartRangeMode(elt, momentInstance);
+          
+          var momentInstance = moment("2015/09/05", "YYYY/MM/DD");
+          pokeStartRangeMode(elt, momentInstance);
+          
+          var momentInstance = moment("2017/10/15", "YYYY/MM/DD");
+          pokeStartRangeMode(elt, momentInstance);
+          
+          var momentInstance = moment("2019/07/04", "YYYY/MM/DD");
+          pokeStartRangeMode(elt, momentInstance);
+
+          assert.equal(startDateEventCount, 0);
+          assert.equal(endDateEventCount, 0)
+
+          // poke the day buttons
+          var dayButtons = Polymer.dom(elt.$.dayPicker).querySelectorAll('.day');
           dayButtons.forEach(function(dayButton) {
             var dayIdentifier = dayButton.getAttribute('day-identifier');
             var dayMoment = moment(dayIdentifier, elt._format);
@@ -146,74 +246,155 @@
             MockInteractions.tap(dayButton);
 
             assert.equal(elt.startDate, expDate);
+            assert.equal(elt.endDate, '');
+          });
+
+          var expectedCount = dayButtons.length;
+          assert.equal(startDateEventCount, expectedCount);
+          assert.equal(endDateEventCount, 0);
+          
+          // reset event count
+          startDateEventCount = 0;
+
+          // poke the previous month button
+          MockInteractions.tap(elt.$['at-carbon-date-picker-left-arrow']);
+          
+          // poke the day buttons
+          var dayButtons = Polymer.dom(elt.$.dayPicker).querySelectorAll('.day');
+          dayButtons.forEach(function(dayButton) {
+            var dayIdentifier = dayButton.getAttribute('day-identifier');
+            var dayMoment = moment(dayIdentifier, elt._format);
+            var expDate = dayMoment.format(elt._format);
+
+            MockInteractions.tap(dayButton);
+
+            assert.equal(elt.startDate, expDate);
+            assert.equal(elt.endDate, '');
+          });
+
+          assert.equal(startDateEventCount, expectedCount);
+          assert.equal(endDateEventCount, 0);
+
+          // reset event count
+          startDateEventCount = 0;
+
+          // poke the next month button, twice to navigate to next month
+          MockInteractions.tap(elt.$['at-carbon-date-picker-right-arrow']);
+          MockInteractions.tap(elt.$['at-carbon-date-picker-right-arrow']);
+
+          // again, poke the day buttons
+          var dayButtons = Polymer.dom(elt.$.dayPicker).querySelectorAll('.day');
+          dayButtons.forEach(function(dayButton) {
+            var dayIdentifier = dayButton.getAttribute('day-identifier');
+            var dayMoment = moment(dayIdentifier, elt._format);
+            var expDate = dayMoment.format(elt._format);
+
+            MockInteractions.tap(dayButton);
+
+            assert.equal(elt.startDate, expDate);
+            assert.equal(elt.endDate, '');
+          });
+
+          assert.equal(startDateEventCount, expectedCount);
+          assert.equal(endDateEventCount, 0);
+
+          doUIMonthInteraction(elt);
+
+          doUIYearInteraction(elt);
+        });
+
+        test('mode end range', function() { 
+          var elt = fixture('propertyTest');
+
+          var startDateEventCount = 0;
+          var endDateEventCount = 0;
+          elt.addEventListener('start-date-changed', function(){ 
+            ++startDateEventCount;
+          });
+          elt.addEventListener('end-date-changed', function() {
+            ++endDateEventCount;
+          });
+
+          var momentInstance = moment("2016/05/01", "YYYY/MM/DD");
+          pokeEndRangeMode(elt, momentInstance);
+          
+          var momentInstance = moment("2015/09/05", "YYYY/MM/DD");
+          pokeEndRangeMode(elt, momentInstance);
+          
+          var momentInstance = moment("2017/10/15", "YYYY/MM/DD");
+          pokeEndRangeMode(elt, momentInstance);
+          
+          var momentInstance = moment("2019/07/04", "YYYY/MM/DD");
+          pokeEndRangeMode(elt, momentInstance);
+
+          assert.equal(startDateEventCount, 0);
+          assert.equal(endDateEventCount, 0);
+
+          // poke the day buttons
+          var dayButtons = Polymer.dom(elt.$.dayPicker).querySelectorAll('.day');
+          dayButtons.forEach(function(dayButton) {
+            var dayIdentifier = dayButton.getAttribute('day-identifier');
+            var dayMoment = moment(dayIdentifier, elt._format);
+            var expDate = dayMoment.format(elt._format);
+
+            MockInteractions.tap(dayButton);
+
+            assert.equal(elt.startDate, '');
             assert.equal(elt.endDate, expDate);
           });
 
-          var expectedCount = 2 * dayButtons.length;
-          assert.equal(eventCount, expectedCount);
-
-          // TODO(ij): poke month fast picker
-
-          // TODO(ij): poke year fast picker
-
-        });
-
-        test('mode start range', function(done) {
-          var elt = fixture('propertyTest');
-
-          var eventCount = 0;
-          elt.addEventListener('start-date-changed', function(){ 
-            eventCount++;
-          });
-          elt.addEventListener('end-date-changed', function() {
-            eventCount++;
-          });
-
-          var momentInstance = moment("2016/05/01", "YYYY/MM/DD");
-          pokeStartRangeMode(elt, momentInstance);
+          var expectedCount = dayButtons.length;
+          assert.equal(startDateEventCount, 0);
+          assert.equal(endDateEventCount, expectedCount);
           
-          var momentInstance = moment("2015/09/05", "YYYY/MM/DD");
-          pokeStartRangeMode(elt, momentInstance);
+          // reset event count
+          endDateEventCount = 0;
+
+          // poke the previous month button
+          MockInteractions.tap(elt.$['at-carbon-date-picker-left-arrow']);
           
-          var momentInstance = moment("2017/10/15", "YYYY/MM/DD");
-          pokeStartRangeMode(elt, momentInstance);
-          
-          var momentInstance = moment("2019/07/04", "YYYY/MM/DD");
-          pokeStartRangeMode(elt, momentInstance);
+          // poke the day buttons
+          var dayButtons = Polymer.dom(elt.$.dayPicker).querySelectorAll('.day');
+          dayButtons.forEach(function(dayButton) {
+            var dayIdentifier = dayButton.getAttribute('day-identifier');
+            var dayMoment = moment(dayIdentifier, elt._format);
+            var expDate = dayMoment.format(elt._format);
 
-          flush(function() {
-            assert.equal(eventCount, 0);
-            done();
-          });
-        });
+            MockInteractions.tap(dayButton);
 
-        test('mode end range', function(done) { 
-          var elt = fixture('propertyTest');
-
-          var eventCount = 0;
-          elt.addEventListener('start-date-changed', function(){ 
-            eventCount++;
-          });
-          elt.addEventListener('end-date-changed', function() {
-            eventCount++;
+            assert.equal(elt.startDate, '');
+            assert.equal(elt.endDate, expDate);
           });
 
-          var momentInstance = moment("2016/05/01", "YYYY/MM/DD");
-          pokeEndRangeMode(elt, momentInstance);
-          
-          var momentInstance = moment("2015/09/05", "YYYY/MM/DD");
-          pokeEndRangeMode(elt, momentInstance);
-          
-          var momentInstance = moment("2017/10/15", "YYYY/MM/DD");
-          pokeEndRangeMode(elt, momentInstance);
-          
-          var momentInstance = moment("2019/07/04", "YYYY/MM/DD");
-          pokeEndRangeMode(elt, momentInstance);
+          assert.equal(startDateEventCount, 0);
+          assert.equal(endDateEventCount, expectedCount);
 
-          flush(function() {
-            assert.equal(eventCount, 0);
-            done();
-          });          
+          // reset event count
+          endDateEventCount = 0;
+
+          // poke the next month button, twice to navigate to next month
+          MockInteractions.tap(elt.$['at-carbon-date-picker-right-arrow']);
+          MockInteractions.tap(elt.$['at-carbon-date-picker-right-arrow']);
+
+          // again, poke the day buttons
+          var dayButtons = Polymer.dom(elt.$.dayPicker).querySelectorAll('.day');
+          dayButtons.forEach(function(dayButton) {
+            var dayIdentifier = dayButton.getAttribute('day-identifier');
+            var dayMoment = moment(dayIdentifier, elt._format);
+            var expDate = dayMoment.format(elt._format);
+
+            MockInteractions.tap(dayButton);
+
+            assert.equal(elt.startDate, '');
+            assert.equal(elt.endDate, expDate);
+          });
+
+          assert.equal(startDateEventCount, 0);
+          assert.equal(endDateEventCount, expectedCount);
+
+          doUIMonthInteraction(elt);
+
+          doUIYearInteraction(elt);
         });
 
       });

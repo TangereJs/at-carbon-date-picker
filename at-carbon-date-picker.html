@@ -377,8 +377,16 @@ Missing features needed for at-form-date
 
           this._refreshCalendar();
 
-          this._fireStartDateChanged(this.startDate);
-          this._fireEndDateChanged(this.endDate);
+          if (this.mode === 'single') {
+            this._fireStartDateChanged(this.startDate);
+            this._fireEndDateChanged(this.endDate);
+          
+          } else if (this.mode === "start-range") {
+            this._fireStartDateChanged(this.startDate);
+            
+          } else if (this.mode === 'end-range') {
+            this._fireEndDateChanged(this.endDate);
+          }
         }
       },
       _monthClicked: function(event) {
