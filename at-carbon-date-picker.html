@@ -141,7 +141,6 @@ Missing features needed for at-form-date
      * fired when new endDate is selected from date-picker
      * @event end-date-changed
      */
-    'use strict';
     Polymer({
       is: 'at-carbon-date-picker',
       behaviors: [Tangere.behaviors.i18n],
@@ -194,6 +193,7 @@ Missing features needed for at-form-date
           observer: 'endDateChanged'
         }
       },
+
       ready: function() {
         this._initializeAtCarbonDatePicker();
       },
@@ -248,22 +248,36 @@ Missing features needed for at-form-date
 
         this._format = this._localizedFormat("date");
       },
+
+      _validModeValues: [ "single", "start-range", "end-range" ],
+
+      _isDateStringValid: function(value) {
+        var valueValid = moment(value, this._format, true).isValid();
+        return valueValid;
+      },
+
       modeChanged: function(newValue, oldValue) {
         this._initializeAtCarbonDatePicker();
+
+        // ignore invalid mode values
+        if (this._validModeValues.indexOf(newValue) === -1) return;
+
+        var isStartValid = this._isDateStringValid(this.startDate);
+        var isEndValid = this._isDateStringValid(this.endDate);
 
         if (newValue === "single") {
           this._isInternalStartDateUpdate = true;
           this._isInternalEndDateUpdate = true;
-          if (this.startDate) {
+          if (isStartValid) {
             this.endDate = this.startDate;
-          } else {
+          } else if (isEndValid) {
             this.startDate = this.endDate;
           }
           this._isInternalStartDateUpdate = false;
           this._isInternalEndDateUpdate = false;
         }
 
-        if (this.startDate && this.endDate) {
+        if (isStartValid && isEndValid) {
           this._updateCurrentMoment();
         }
 
